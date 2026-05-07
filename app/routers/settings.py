@@ -5,13 +5,14 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.deps import require_user
+from app.auth.deps import require_admin, require_user
 from app.auth.sessions import SESSION_COOKIE_NAME
 from app.config import settings as app_settings
 from app.db import get_session
 from app.models import User
 from app.models.user import PRIMARY_METRICS
 from app.services import discord as discord_svc
+from app.services import mealie as mealie_svc
 from app.services import reminders as reminders_svc
 from app.services import settings as settings_svc
 
@@ -52,6 +53,8 @@ async def settings_page(
         if discord
         else ""
     )
+    mealie = await mealie_svc.get_or_create_settings(db) if user.is_admin else None
+    await db.commit()  # may have inserted the singleton row
     return templates.TemplateResponse(
         request,
         "settings.html",
@@ -65,6 +68,9 @@ async def settings_page(
             "discord_msg": _flash(request, "discord_msg"),
             "discord_ok": _flash(request, "discord_ok") == "1",
             "danger_msg": _flash(request, "danger_msg"),
+            "mealie": mealie,
+            "mealie_msg": _flash(request, "mealie_msg"),
+            "mealie_ok": _flash(request, "mealie_ok") == "1",
         },
     )
 
@@ -184,6 +190,81 @@ async def sign_out_all(
     await db.commit()
     return RedirectResponse(
         f"/settings?danger_msg={_quote(f'Signed out {n} other session(s).')}",
+        status_code=303,
+    )
+
+
+@router.post("/mealie")
+async def save_mealie(
+    url: Optional[str] = Form(None),
+    api_token: Optional[str] = Form(None),
+    db: AsyncSession = Depends(get_session),
+    user: User = Depends(require_admin),
+):
+    cfg = await mealie_svc.get_or_create_settings(db)
+    new_url = (url or "").strip().rstrip("/")
+    new_token = (api_token or "").strip()
+
+    # Both blank → user is clearing the integration.
+    if not new_url and not new_token:
+        cfg.url = None
+        cfg.api_token = None
+        await db.commit()
+        return RedirectResponse(
+            "/settings?mealie_ok=1&mealie_msg=" + _quote("Cleared."),
+            status_code=303,
+        )
+
+    if not new_url or not new_token:
+        return RedirectResponse(
+            "/settings?mealie_ok=0&mealie_msg="
+            + _quote("Both URL and API token are required."),
+            status_code=303,
+        )
+
+    # Test the new credentials before persisting.
+    if new_url != cfg.url or new_token != cfg.api_token:
+        ok, msg = await mealie_svc.test_connection(new_url, new_token)
+        if not ok:
+            return RedirectResponse(
+                f"/settings?mealie_ok=0&mealie_msg={_quote(msg)}",
+                status_code=303,
+            )
+
+    cfg.url = new_url
+    cfg.api_token = new_token
+    await db.commit()
+    return RedirectResponse(
+        "/settings?mealie_ok=1&mealie_msg=" + _quote("Saved."),
+        status_code=303,
+    )
+
+
+@router.post("/mealie/sync")
+async def sync_mealie(
+    db: AsyncSession = Depends(get_session),
+    user: User = Depends(require_admin),
+):
+    cfg = await mealie_svc.get_or_create_settings(db)
+    if not cfg.url or not cfg.api_token:
+        return RedirectResponse(
+            "/settings?mealie_ok=0&mealie_msg="
+            + _quote("Configure Mealie first."),
+            status_code=303,
+        )
+    result = await mealie_svc.sync(db, cfg)
+    await db.commit()
+    if "error" in result:
+        return RedirectResponse(
+            f"/settings?mealie_ok=0&mealie_msg={_quote(result['error'])}",
+            status_code=303,
+        )
+    msg = (
+        f"{result['imported']} new, {result['updated']} updated, "
+        f"{result['skipped']} skipped (of {result['total']} recipes)"
+    )
+    return RedirectResponse(
+        f"/settings?mealie_ok=1&mealie_msg={_quote(msg)}",
         status_code=303,
     )
 

@@ -5,7 +5,7 @@
         <li>
           <a href="/foods/{{ f.id }}">
             <strong>{{ f.name }}</strong>{% if f.brand %} — <span class="muted">{{ f.brand }}</span>{% endif %}
-            {% if f.source == 'usda' %}<span class="muted" style="font-size:0.75em;">[USDA]</span>{% elif f.source == 'openfoodfacts' %}<span class="muted" style="font-size:0.75em;">[OFF]</span>{% endif %}
+            {% if f.source == 'usda' %}<span class="muted" style="font-size:0.75em;">[USDA]</span>{% elif f.source == 'openfoodfacts' %}<span class="muted" style="font-size:0.75em;">[OFF]</span>{% elif f.source == 'mealie' %}<span class="muted" style="font-size:0.75em;">[Mealie]</span>{% endif %}
             <br>
             <span class="muted">
               {% if f.calories_per_100g is not none %}{{ f.calories_per_100g|round(0) }} kcal{% endif %}

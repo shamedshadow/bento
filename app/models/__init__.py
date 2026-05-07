@@ -3,6 +3,7 @@ from app.models.entry import Entry
 from app.models.favorite import Favorite
 from app.models.food import Food
 from app.models.magic_link import MagicLink
+from app.models.mealie_settings import MealieSettings
 from app.models.reminder_log import ReminderLog
 from app.models.saved_meal import SavedMeal, SavedMealItem
 from app.models.session import Session
@@ -19,4 +20,5 @@ __all__ = [
     "SavedMealItem",
     "DiscordSettings",
     "ReminderLog",
+    "MealieSettings",
 ]

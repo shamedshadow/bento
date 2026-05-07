@@ -15,7 +15,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
 
-FOOD_SOURCES = ("openfoodfacts", "usda", "custom")
+FOOD_SOURCES = ("openfoodfacts", "usda", "custom", "mealie")
 
 
 class Food(Base):
@@ -23,7 +23,7 @@ class Food(Base):
     __table_args__ = (
         UniqueConstraint("source", "source_id", name="uq_foods_source_id"),
         CheckConstraint(
-            "source IN ('openfoodfacts','usda','custom')",
+            "source IN ('openfoodfacts','usda','custom','mealie')",
             name="ck_foods_source",
         ),
     )
