@@ -1,20 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Bento{% endblock %}
+{% block title %}{% if is_today %}Today{% else %}{{ day.strftime('%a, %b %d') }}{% endif %} — Bento{% endblock %}
 {% block content %}
-<h1>Bento</h1>
-<p class="muted">Signed in as <strong>{{ current_user.name }}</strong>.</p>
 
-<div class="card">
-  <p class="muted">Primary metric: {{ current_user.primary_metric.replace('_',' ') }} — daily target {{ current_user.daily_target_primary }}.</p>
-  <p><a class="btn" href="/today">Today's log</a> <a class="btn secondary" href="/foods">Find a food</a></p>
+<div class="top-bar">
+  <span class="brand">Bento</span>
+  <span>
+    <span style="color:#888;">{{ current_user.name }}</span>
+    {% if current_user.is_admin %} · <a href="/admin/users">Admin</a>{% endif %}
+    · <form method="post" action="/auth/logout" style="display:inline;margin:0;"><button type="submit" style="background:none;border:0;color:#555;font-size:0.9rem;padding:0;margin:0;cursor:pointer;text-decoration:underline;">Sign out</button></form>
+  </span>
 </div>
 
-<div class="card">
-  {% if current_user.is_admin %}
-    <p><a class="btn secondary" href="/admin/users">Manage users</a></p>
-  {% endif %}
-  <form method="post" action="/auth/logout">
-    <button type="submit" class="secondary">Sign out</button>
-  </form>
+<div id="dashboard-body">
+  {% include "_dashboard_body.html" %}
 </div>
+
+{% if is_today %}
+  <a class="fab" href="/foods" title="Find or scan a food">+</a>
+{% endif %}
 {% endblock %}

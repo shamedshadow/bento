@@ -180,65 +180,6 @@ async def log_submit(
     return RedirectResponse("/today", status_code=303)
 
 
-@router.get("/today")
-async def today_view(
-    request: Request,
-    day: Optional[str] = Query(None),
-    db: AsyncSession = Depends(get_session),
-    user: User = Depends(require_user),
-):
-    target = date.fromisoformat(day) if day else logsvc.user_today(user)
-    pairs = await logsvc.list_entries_with_foods(db, user, target)
-
-    grouped: dict[Optional[str], list[tuple[Entry, Food, dict]]] = {}
-    for entry, food in pairs:
-        key = entry.meal_type
-        grouped.setdefault(key, []).append(
-            (entry, food, logsvc.compute_nutrients(food, entry.amount_g))
-        )
-
-    totals = logsvc.daily_totals(pairs)
-    primary_total = totals.get(_metric_key(user.primary_metric))
-
-    prev_day = (target.toordinal() - 1)
-    next_day = (target.toordinal() + 1)
-    return templates.TemplateResponse(
-        request,
-        "entries/today.html",
-        {
-            "current_user": user,
-            "day": target,
-            "is_today": target == logsvc.user_today(user),
-            "prev_day": date.fromordinal(prev_day).isoformat(),
-            "next_day": date.fromordinal(next_day).isoformat(),
-            "grouped": grouped,
-            "totals": totals,
-            "primary_total": primary_total,
-            "primary_metric": user.primary_metric,
-            "primary_metric_label": user.primary_metric.replace("_", " "),
-            "primary_target": user.daily_target_primary,
-            "meal_order": ["breakfast", "lunch", "dinner", "snack", None],
-            "meal_labels": {
-                "breakfast": "Breakfast",
-                "lunch": "Lunch",
-                "dinner": "Dinner",
-                "snack": "Snacks",
-                None: "Other",
-            },
-        },
-    )
-
-
-def _metric_key(primary: str) -> str:
-    """Map User.primary_metric to the key used in nutrient totals dict."""
-    return {
-        "calories": "calories",
-        "net_carbs": "net_carbs",
-        "total_carbs": "carbs",
-        "protein": "protein",
-    }.get(primary, "calories")
-
-
 @router.get("/entries/{entry_id}/edit")
 async def edit_entry_form(
     entry_id: int,
