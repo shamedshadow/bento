@@ -1,3 +1,4 @@
+from app.models.discord_settings import DiscordSettings
 from app.models.entry import Entry
 from app.models.favorite import Favorite
 from app.models.food import Food
@@ -15,4 +16,5 @@ __all__ = [
     "Favorite",
     "SavedMeal",
     "SavedMealItem",
+    "DiscordSettings",
 ]
