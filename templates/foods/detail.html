@@ -12,13 +12,13 @@
 <div class="card">
   <h2>Per 100g</h2>
   <ul class="user-list">
-    {% if food.calories_per_100g is not none %}<li><div style="padding:0.6rem 1rem;background:#fff;border:1px solid #e6e3dc;border-radius:8px;"><strong>{{ food.calories_per_100g|round(0) }}</strong> kcal</div></li>{% endif %}
-    {% if food.carbs_per_100g is not none %}<li><div style="padding:0.6rem 1rem;background:#fff;border:1px solid #e6e3dc;border-radius:8px;"><strong>{{ food.carbs_per_100g|round(1) }}g</strong> carbs{% if food.fiber_per_100g is not none %} <span class="muted">({{ food.net_carbs_per_100g|round(1) }}g net)</span>{% endif %}</div></li>{% endif %}
-    {% if food.fiber_per_100g is not none %}<li><div style="padding:0.6rem 1rem;background:#fff;border:1px solid #e6e3dc;border-radius:8px;"><strong>{{ food.fiber_per_100g|round(1) }}g</strong> fiber</div></li>{% endif %}
-    {% if food.protein_per_100g is not none %}<li><div style="padding:0.6rem 1rem;background:#fff;border:1px solid #e6e3dc;border-radius:8px;"><strong>{{ food.protein_per_100g|round(1) }}g</strong> protein</div></li>{% endif %}
-    {% if food.fat_per_100g is not none %}<li><div style="padding:0.6rem 1rem;background:#fff;border:1px solid #e6e3dc;border-radius:8px;"><strong>{{ food.fat_per_100g|round(1) }}g</strong> fat</div></li>{% endif %}
-    {% if food.sugar_per_100g is not none %}<li><div style="padding:0.6rem 1rem;background:#fff;border:1px solid #e6e3dc;border-radius:8px;"><strong>{{ food.sugar_per_100g|round(1) }}g</strong> sugar</div></li>{% endif %}
-    {% if food.sodium_per_100g is not none %}<li><div style="padding:0.6rem 1rem;background:#fff;border:1px solid #e6e3dc;border-radius:8px;"><strong>{{ (food.sodium_per_100g * 1000)|round(0) }}mg</strong> sodium</div></li>{% endif %}
+    {% if food.calories_per_100g is not none %}<li><div style="padding:0.6rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;"><strong>{{ food.calories_per_100g|round(0) }}</strong> kcal</div></li>{% endif %}
+    {% if food.carbs_per_100g is not none %}<li><div style="padding:0.6rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;"><strong>{{ food.carbs_per_100g|round(1) }}g</strong> carbs{% if food.fiber_per_100g is not none %} <span class="muted">({{ food.net_carbs_per_100g|round(1) }}g net)</span>{% endif %}</div></li>{% endif %}
+    {% if food.fiber_per_100g is not none %}<li><div style="padding:0.6rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;"><strong>{{ food.fiber_per_100g|round(1) }}g</strong> fiber</div></li>{% endif %}
+    {% if food.protein_per_100g is not none %}<li><div style="padding:0.6rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;"><strong>{{ food.protein_per_100g|round(1) }}g</strong> protein</div></li>{% endif %}
+    {% if food.fat_per_100g is not none %}<li><div style="padding:0.6rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;"><strong>{{ food.fat_per_100g|round(1) }}g</strong> fat</div></li>{% endif %}
+    {% if food.sugar_per_100g is not none %}<li><div style="padding:0.6rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;"><strong>{{ food.sugar_per_100g|round(1) }}g</strong> sugar</div></li>{% endif %}
+    {% if food.sodium_per_100g is not none %}<li><div style="padding:0.6rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;"><strong>{{ (food.sodium_per_100g * 1000)|round(0) }}mg</strong> sodium</div></li>{% endif %}
   </ul>
   {% if food.default_serving_g %}
     <p class="muted">Default serving: {{ food.default_serving_g }}g{% if food.default_serving_label %} ({{ food.default_serving_label }}){% endif %}</p>

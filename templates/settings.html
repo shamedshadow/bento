@@ -7,7 +7,7 @@
 </div>
 
 {% if saved == 'profile' %}
-  <div class="card" style="background:#eef0e8;border-color:#cdd2c0;">
+  <div class="flash success">
     <p style="margin:0;">Profile saved.</p>
   </div>
 {% endif %}
@@ -62,7 +62,7 @@
 <form method="post" action="/settings/discord" class="card">
   <h2 style="margin-top:0;">Discord reminders</h2>
   {% if discord_msg %}
-    <p class="{% if not discord_ok %}error{% endif %}" style="margin:0 0 0.5rem;{% if discord_ok %}color:#3a6a1c;{% endif %}">
+    <p class="{% if discord_ok %}muted{% else %}error{% endif %}" style="margin:0 0 0.5rem;{% if discord_ok %}color:var(--accent-hi);{% endif %}">
       {{ discord_msg }}
     </p>
   {% endif %}
@@ -127,7 +127,7 @@
 {% endif %}
 
 <div class="card">
-  <h2 style="margin-top:0;color:#9a3a1c;">Danger zone</h2>
+  <h2 class="danger-heading" style="margin-top:0;">Danger zone</h2>
   {% if danger_msg %}
     <p class="muted" style="margin:0 0 0.5rem;">{{ danger_msg }}</p>
   {% endif %}
@@ -156,7 +156,7 @@
     <label>Type <strong>DELETE</strong> to confirm
       <input type="text" name="confirm" placeholder="DELETE" required>
     </label>
-    <button type="submit" class="secondary" style="background:#9a3a1c;color:#fff;">Delete all my entries</button>
+    <button type="submit" class="btn-danger">Delete all my entries</button>
   </form>
 </div>
 {% endblock %}

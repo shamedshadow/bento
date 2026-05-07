@@ -39,7 +39,7 @@
       <ul class="user-list">
         {% for entry, food, n in grouped[meal] %}
           <li>
-            <div style="padding:0.85rem 1rem;background:#fff;border:1px solid #e6e3dc;border-radius:8px;">
+            <div style="padding:0.85rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;">
               <div style="display:flex;justify-content:space-between;gap:0.5rem;">
                 <div style="flex:1;min-width:0;">
                   <strong>{{ food.name }}</strong>{% if food.brand %} <span class="muted">— {{ food.brand }}</span>{% endif %}<br>

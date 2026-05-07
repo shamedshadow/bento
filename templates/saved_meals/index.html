@@ -13,7 +13,7 @@
   <ul class="user-list">
     {% for m in meals %}
       <li>
-        <div style="padding:0.85rem 1rem;background:#fff;border:1px solid #e6e3dc;border-radius:8px;">
+        <div style="padding:0.85rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;">
           <div style="display:flex;justify-content:space-between;gap:0.5rem;align-items:flex-start;">
             <div style="flex:1;min-width:0;">
               <a href="/saved-meals/{{ m.id }}"><strong>{{ m.name }}</strong></a>
