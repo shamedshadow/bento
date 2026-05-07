@@ -7,6 +7,10 @@
 <p class="muted">Last 14 days, ordered by how often you logged each.</p>
 
 {% if pairs %}
+  {% if pairs|length > 8 %}
+    <input type="search" data-list-filter=".user-list" placeholder="Filter…"
+           autocomplete="off" style="margin-bottom:0.6rem;">
+  {% endif %}
   <ul class="user-list">
     {% for food, count in pairs %}
       <li>

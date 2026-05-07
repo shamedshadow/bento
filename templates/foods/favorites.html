@@ -6,6 +6,10 @@
 <h1>Favorites</h1>
 
 {% if foods %}
+  {% if foods|length > 8 %}
+    <input type="search" data-list-filter=".user-list" placeholder="Filter…"
+           autocomplete="off" style="margin-bottom:0.6rem;">
+  {% endif %}
   <ul class="user-list">
     {% for f in foods %}
       <li>

@@ -1,13 +1,19 @@
+import sqlite3
+import tempfile
+from datetime import date
+from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.background import BackgroundTask
 
 from app.auth import magic_links
 from app.auth.deps import require_admin
+from app.config import settings as app_settings
 from app.db import get_session
 from app.models import Entry, Food, MagicLink, User
 from app.models.user import PRIMARY_METRICS
@@ -136,6 +142,47 @@ async def regenerate_link(
     await db.commit()
     return RedirectResponse(
         f"/admin/users?flash_link_for_user={user.id}", status_code=303
+    )
+
+
+@router.get("/backup")
+async def download_backup(
+    admin: User = Depends(require_admin),
+):
+    """Stream a consistent SQLite snapshot via the backup API."""
+    url = app_settings.database_url
+    marker = "sqlite+aiosqlite:///"
+    if not url.startswith(marker):
+        raise HTTPException(500, "Backup only supported for SQLite databases.")
+    src_path = Path(url[len(marker):]).resolve()
+    if not src_path.exists():
+        raise HTTPException(500, f"DB file not found at {src_path}.")
+
+    # Use SQLite's online backup API rather than a raw file copy so a write
+    # mid-stream can't corrupt the snapshot.
+    tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+    tmp.close()
+    tmp_path = tmp.name
+    src = sqlite3.connect(str(src_path))
+    dst = sqlite3.connect(tmp_path)
+    try:
+        src.backup(dst)
+    finally:
+        src.close()
+        dst.close()
+
+    def _cleanup(path: str) -> None:
+        try:
+            Path(path).unlink(missing_ok=True)
+        except Exception:
+            pass
+
+    filename = f"bento-{date.today().isoformat()}.db"
+    return FileResponse(
+        tmp_path,
+        media_type="application/octet-stream",
+        filename=filename,
+        background=BackgroundTask(_cleanup, tmp_path),
     )
 
 

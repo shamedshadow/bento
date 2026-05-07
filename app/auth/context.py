@@ -7,6 +7,7 @@ from starlette.requests import Request
 
 from app.auth.sessions import SESSION_COOKIE_NAME, lookup_session
 from app.db import AsyncSessionLocal
+from app.version import BENTO_VERSION, GIT_SHA
 
 SKIP_PREFIXES = ("/static", "/photos", "/health")
 
@@ -15,6 +16,9 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
         request.state.current_user = None
+        # Templates read these to render the version footer in the gear menu.
+        request.state.bento_version = BENTO_VERSION
+        request.state.bento_git_sha = GIT_SHA
 
         if any(path == p or path.startswith(p + "/") for p in SKIP_PREFIXES):
             return await call_next(request)

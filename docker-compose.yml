@@ -17,3 +17,6 @@ services:
       - USDA_API_KEY=${USDA_API_KEY:-}
       - BENTO_SESSION_SECRET=${BENTO_SESSION_SECRET:-}
       - BENTO_OPEN_SIGNUP=${BENTO_OPEN_SIGNUP:-false}
+      # Optional: pass via `BENTO_GIT_SHA=$(git rev-parse --short HEAD) docker compose up`
+      # so the gear menu shows the deployed commit. Empty is fine.
+      - BENTO_GIT_SHA=${BENTO_GIT_SHA:-}

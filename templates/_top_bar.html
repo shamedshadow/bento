@@ -20,6 +20,9 @@
       <form method="post" action="/auth/logout" style="margin:0;">
         <button type="submit" class="link-button">{{ icons.icon('log-out', 'icon icon-sm') }}<span>Sign out</span></button>
       </form>
+      <p class="muted" style="margin:0.4rem 0.75rem 0.2rem;font-size:0.75rem;text-align:center;">
+        Bento v{{ request.state.bento_version }}{% if request.state.bento_git_sha %} · {{ request.state.bento_git_sha }}{% endif %}
+      </p>
     </div>
   </details>
 </div>

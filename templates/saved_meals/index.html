@@ -34,7 +34,11 @@
   <h2 style="margin-top:1.75rem;">From Mealie</h2>
   {% if mealie_foods %}
     <p class="muted" style="margin-top:0;">{{ mealie_foods|length }} recipe{{ '' if mealie_foods|length == 1 else 's' }} synced. <em>1 serving = 100g virtual unit.</em></p>
-    <ul class="user-list">
+    {% if mealie_foods|length > 8 %}
+      <input type="search" data-list-filter=".mealie-list" placeholder="Filter recipes…"
+             autocomplete="off" style="margin-bottom:0.6rem;">
+    {% endif %}
+    <ul class="user-list mealie-list">
       {% for f in mealie_foods %}
         <li>
           <div class="row-action">

@@ -26,4 +26,9 @@
     {% endif %}
   </p>
 </a>
+
+<a href="/admin/backup" class="card" style="display:block;text-decoration:none;color:inherit;">
+  <h2 style="margin-top:0;">Download DB backup</h2>
+  <p class="muted" style="margin:0;">Snapshot of <code>bento.db</code> via SQLite's online backup API. Safe to run while users are logged in.</p>
+</a>
 {% endblock %}
