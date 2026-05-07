@@ -12,6 +12,7 @@ from app.db import get_session
 from app.models import User
 from app.models.user import PRIMARY_METRICS
 from app.services import discord as discord_svc
+from app.services import reminders as reminders_svc
 from app.services import settings as settings_svc
 
 # Common IANA timezones — short list. Users can also free-type any IANA name.
@@ -162,9 +163,12 @@ async def test_webhook(
             "/settings?discord_ok=0&discord_msg=" + _quote("No webhook URL saved."),
             status_code=303,
         )
-    ok, msg = await discord_svc.send_test(cfg.webhook_url, user)
+    results = await reminders_svc.send_sample_of_each(db, user, cfg)
+    summary_parts = [f"{k}: {v}" for k, v in results.items()]
+    summary = "; ".join(summary_parts) or "Nothing enabled."
+    all_ok = all("sent" == v for v in results.values())
     return RedirectResponse(
-        f"/settings?discord_ok={'1' if ok else '0'}&discord_msg={_quote(msg)}",
+        f"/settings?discord_ok={'1' if all_ok else '0'}&discord_msg={_quote(summary)}",
         status_code=303,
     )
 

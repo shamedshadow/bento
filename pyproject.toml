@@ -16,6 +16,7 @@ dependencies = [
     "argon2-cffi>=25.1.0",
     "httpx>=0.28.1",
     "tzdata>=2026.2",
+    "apscheduler>=3.10",
 ]
 
 [dependency-groups]

@@ -18,14 +18,20 @@ from app.routers import (
     settings as settings_routes,
     trends,
 )
+from app.scheduler import build_scheduler
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     photos_dir = Path(settings.photos_dir)
     photos_dir.mkdir(parents=True, exist_ok=True)
-    yield
-    await engine.dispose()
+    scheduler = build_scheduler()
+    scheduler.start()
+    try:
+        yield
+    finally:
+        scheduler.shutdown(wait=False)
+        await engine.dispose()
 
 
 app = FastAPI(title="Bento", lifespan=lifespan)

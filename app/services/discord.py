@@ -1,10 +1,8 @@
-"""Discord webhook helpers. Sending real reminders is F8; for F7 we just send a
-generic 'Bento is connected' test message used by /settings/test-webhook and on
-URL save (acceptance criterion: 'triggers a test message before persisting').
-"""
+"""Discord webhook client + embed builders for each reminder type."""
 
 import json
 import logging
+from datetime import date
 from typing import Optional
 
 import httpx
@@ -14,6 +12,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import DiscordSettings, User
 
 logger = logging.getLogger(__name__)
+
+# Bento brand-ish neutral color for embed sidebars.
+EMBED_COLOR = 0x968C6E
 
 
 async def get_settings(
@@ -36,10 +37,23 @@ async def ensure_settings(session: AsyncSession, user_id: int) -> DiscordSetting
     return row
 
 
-async def send_test(webhook_url: str, user: User) -> tuple[bool, str]:
-    """POST a small embed to verify the URL works. Returns (ok, message)."""
+async def _post(webhook_url: str, payload: dict) -> tuple[bool, str]:
+    """Bare POST to a webhook. Returns (ok, detail)."""
     if not webhook_url:
         return False, "No webhook URL provided."
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(webhook_url, json=payload)
+            if 200 <= resp.status_code < 300:
+                return True, "OK"
+            return False, f"Discord returned {resp.status_code}: {resp.text[:200]}"
+    except httpx.HTTPError as e:
+        logger.warning("Discord webhook POST failed: %s", e)
+        return False, f"Network error: {e}"
+
+
+async def send_test(webhook_url: str, user: User) -> tuple[bool, str]:
+    """Generic 'connected' test used on URL save (F7)."""
     payload = {
         "username": "Bento",
         "embeds": [
@@ -49,19 +63,156 @@ async def send_test(webhook_url: str, user: User) -> tuple[bool, str]:
                     f"Test message from Bento for **{user.name}**. "
                     "Reminders you enable will arrive here."
                 ),
-                "color": 0x968C6E,
+                "color": EMBED_COLOR,
             }
         ],
     }
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.post(webhook_url, json=payload)
-            if 200 <= resp.status_code < 300:
-                return True, "Test message sent."
-            return False, f"Discord returned {resp.status_code}: {resp.text[:200]}"
-    except httpx.HTTPError as e:
-        logger.warning("Discord webhook test failed: %s", e)
-        return False, f"Network error: {e}"
+    ok, detail = await _post(webhook_url, payload)
+    return ok, "Test message sent." if ok else detail
+
+
+# ----- Reminder embeds (F8) -------------------------------------------------
+
+
+def _label_metric(metric: str) -> str:
+    return {
+        "calories": "calories",
+        "net_carbs": "g net carbs",
+        "total_carbs": "g carbs",
+        "protein": "g protein",
+    }.get(metric, metric)
+
+
+def _format_value(metric: str, value: Optional[float]) -> str:
+    if value is None:
+        return "—"
+    if metric == "calories":
+        return f"{round(value):.0f}"
+    return f"{value:.1f}"
+
+
+async def send_meal_nudge(
+    webhook_url: str, user: User, meal_label: str
+) -> tuple[bool, str]:
+    """Plain content. Short and neutral."""
+    payload = {
+        "username": "Bento",
+        "content": f"Time for {meal_label}, {user.name}?",
+    }
+    return await _post(webhook_url, payload)
+
+
+async def send_eod_summary(
+    webhook_url: str,
+    user: User,
+    day: date,
+    totals: dict,
+    primary_metric: str,
+    primary_target: int,
+) -> tuple[bool, str]:
+    """Today's totals vs target. Descriptive language only — no judgement."""
+    metric_key = {
+        "calories": "calories",
+        "net_carbs": "net_carbs",
+        "total_carbs": "carbs",
+        "protein": "protein",
+    }.get(primary_metric, "calories")
+    primary_value = totals.get(metric_key)
+
+    fields = [
+        {
+            "name": primary_metric.replace("_", " ").title(),
+            "value": (
+                f"{_format_value(primary_metric, primary_value)} / {primary_target} "
+                f"{_label_metric(primary_metric)}"
+            ),
+            "inline": False,
+        }
+    ]
+    secondary_pairs = [
+        ("Calories", "calories", "calories"),
+        ("Net carbs", "net_carbs", "net_carbs"),
+        ("Protein", "protein", "protein"),
+        ("Fat", "fat", "fat"),
+    ]
+    for name, metric, key in secondary_pairs:
+        if metric == primary_metric:
+            continue
+        v = totals.get(key)
+        if v is None:
+            continue
+        fields.append(
+            {
+                "name": name,
+                "value": f"{_format_value(metric, v)} {_label_metric(metric)}",
+                "inline": True,
+            }
+        )
+
+    payload = {
+        "username": "Bento",
+        "embeds": [
+            {
+                "title": f"Today's totals · {day.strftime('%a, %b %d')}",
+                "color": EMBED_COLOR,
+                "fields": fields,
+            }
+        ],
+    }
+    return await _post(webhook_url, payload)
+
+
+async def send_weekly_summary(
+    webhook_url: str,
+    user: User,
+    *,
+    week_start: date,
+    week_end: date,
+    avg_primary: Optional[float],
+    days_logged: int,
+    days_under_or_at: int,
+    days_over: int,
+    primary_metric: str,
+    primary_target: int,
+) -> tuple[bool, str]:
+    payload = {
+        "username": "Bento",
+        "embeds": [
+            {
+                "title": f"Weekly recap · {week_start.strftime('%b %d')}{chr(8211)}{week_end.strftime('%b %d')}",
+                "color": EMBED_COLOR,
+                "fields": [
+                    {
+                        "name": "Average daily",
+                        "value": (
+                            f"{_format_value(primary_metric, avg_primary)} "
+                            f"{_label_metric(primary_metric)}"
+                            if avg_primary is not None
+                            else "—"
+                        ),
+                        "inline": False,
+                    },
+                    {"name": "Days logged", "value": str(days_logged), "inline": True},
+                    {
+                        "name": "At or under target",
+                        "value": str(days_under_or_at),
+                        "inline": True,
+                    },
+                    {"name": "Over target", "value": str(days_over), "inline": True},
+                ],
+                "footer": {"text": f"Target: {primary_target} {_label_metric(primary_metric)}/day"},
+            }
+        ],
+    }
+    return await _post(webhook_url, payload)
+
+
+async def send_log_nudge(webhook_url: str, user: User) -> tuple[bool, str]:
+    payload = {
+        "username": "Bento",
+        "content": f"Haven't seen you log anything today, {user.name} — when you get a moment.",
+    }
+    return await _post(webhook_url, payload)
 
 
 def parse_meal_times(value: str) -> list[str]:
