@@ -602,9 +602,8 @@ button:disabled, .btn:disabled {
 
 /* --- Square icon button (Edit/Delete on entry rows, etc.) --- */
 .icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   width: 36px;
   height: 36px;
   min-height: 36px;
@@ -615,13 +614,12 @@ button:disabled, .btn:disabled {
   color: var(--text-muted);
   border-radius: var(--radius-sm);
   cursor: pointer;
+  line-height: 0;
 }
 .icon-btn:hover { color: var(--text); border-color: var(--accent-dim); background: var(--surface-2); }
 .icon-btn.warn:hover { color: var(--warn-hi); border-color: var(--warn); }
-/* Force SVG to behave as a block child so baseline/inline rendering doesn't
-   knock it out of the 36×36 button box. */
 .icon-btn .icon,
-.icon-btn svg { display: block; }
+.icon-btn svg { display: block; width: 16px; height: 16px; }
 
 /* --- Row with action (e.g., quick-log button on Recents/Favorites) --- */
 .row-action {

@@ -1,9 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Users — Bento admin{% endblock %}
 {% block content %}
+{% import "_icons.html" as icons %}
 {% with back_href="/", title="Admin · Users" %}{% include "_top_bar.html" %}{% endwith %}
 <h1>Users</h1>
 <p class="muted">Signed in as {{ current_user.name }} (admin).</p>
+
+{% if flash_msg %}
+  <div class="flash">
+    <p style="margin:0;">{{ flash_msg }}</p>
+  </div>
+{% endif %}
 
 {% if flash_link_for_user and pending_links.get(flash_link_for_user) %}
   <div class="card">
@@ -24,8 +31,21 @@
       {% for u in users %}
         <li>
           <div style="padding:0.85rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;">
-            <strong>{{ u.name }}</strong>{% if u.is_admin %} <span class="muted">(admin)</span>{% endif %}<br>
-            <span class="muted">{{ u.email }} · {{ u.primary_metric.replace('_',' ') }} · target {{ u.daily_target_primary }}</span>
+            <div style="display:flex;justify-content:space-between;gap:0.5rem;align-items:flex-start;">
+              <div style="flex:1;min-width:0;">
+                <strong>{{ u.name }}</strong>{% if u.is_admin %} <span class="muted">(admin)</span>{% endif %}{% if u.id == current_user.id %} <span class="muted">(you)</span>{% endif %}<br>
+                <span class="muted">{{ u.email }} · {{ u.primary_metric.replace('_',' ') }} · target {{ u.daily_target_primary }}</span>
+              </div>
+              {% if u.id != current_user.id %}
+                <form method="post" action="/admin/users/{{ u.id }}/delete" style="margin:0;"
+                      onsubmit="return promptDelete(this, {{ u.name|tojson }})">
+                  <input type="hidden" name="confirm" value="">
+                  <button type="submit" class="icon-btn warn" aria-label="Delete user">
+                    {{ icons.icon('trash', 'icon icon-sm') }}
+                  </button>
+                </form>
+              {% endif %}
+            </div>
             {% if u.pin_hash is none %}
               <p class="muted" style="margin-top:0.5rem;">PIN not set yet.</p>
               {% if pending_links.get(u.id) and u.id != flash_link_for_user %}
@@ -66,4 +86,17 @@
     <button type="submit">Create user &amp; magic link</button>
   </form>
 </div>
+
+<script>
+function promptDelete(form, name) {
+  const answer = window.prompt(
+    'Delete user "' + name + '"? This removes their entries and saved meals.\n' +
+    'Custom foods they created stay in the catalog.\n\n' +
+    'Type DELETE to confirm:'
+  );
+  if (answer !== 'DELETE') return false;
+  form.querySelector('input[name="confirm"]').value = answer;
+  return true;
+}
+</script>
 {% endblock %}
