@@ -14,7 +14,7 @@
     <div class="gear-panel">
       <a href="/settings">{{ icons.icon('settings', 'icon icon-sm') }}<span>Settings</span></a>
       {% if current_user and current_user.is_admin %}
-        <a href="/admin/users">{{ icons.icon('shield', 'icon icon-sm') }}<span>Admin</span></a>
+        <a href="/admin">{{ icons.icon('shield', 'icon icon-sm') }}<span>Admin</span></a>
       {% endif %}
       <hr>
       <form method="post" action="/auth/logout" style="margin:0;">

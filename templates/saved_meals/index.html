@@ -29,4 +29,42 @@
     <p class="hint">Tap <strong>+</strong> below → <em>New saved meal</em>, or save a meal from any logged day on Home.</p>
   </div>
 {% endif %}
+
+{% if mealie_configured %}
+  <h2 style="margin-top:1.75rem;">From Mealie</h2>
+  {% if mealie_foods %}
+    <p class="muted" style="margin-top:0;">{{ mealie_foods|length }} recipe{{ '' if mealie_foods|length == 1 else 's' }} synced. <em>1 serving = 100g virtual unit.</em></p>
+    <ul class="user-list">
+      {% for f in mealie_foods %}
+        <li>
+          <div class="row-action">
+            <a href="/foods/{{ f.id }}/log" class="row-info">
+              <strong>{{ f.name }}</strong>
+              <div class="meta">
+                {% if f.calories_per_100g is not none %}{{ f.calories_per_100g|round(0)|int }} kcal{% endif %}
+                {% if f.carbs_per_100g is not none %} · {{ f.carbs_per_100g|round(1) }}g carbs{% endif %}
+                {% if f.protein_per_100g is not none %} · {{ f.protein_per_100g|round(1) }}g protein{% endif %}
+                · per serving
+              </div>
+            </a>
+            <form method="post" action="/foods/{{ f.id }}/log">
+              <input type="hidden" name="amount_g" value="100">
+              <button type="submit" class="quick-log">{{ icons.icon('plus', 'icon icon-sm') }}<span>Log</span></button>
+            </form>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="card empty-state">
+      {{ icons.icon('bookmark', 'icon icon-xl') }}
+      <p>No Mealie recipes synced yet.</p>
+      {% if current_user.is_admin %}
+        <p class="hint">Run a sync from <a href="/admin/mealie">Admin → Mealie</a>.</p>
+      {% else %}
+        <p class="hint">Ask your admin to run a Mealie sync.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endif %}
 {% endblock %}

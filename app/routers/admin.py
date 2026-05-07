@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -9,6 +11,7 @@ from app.auth.deps import require_admin
 from app.db import get_session
 from app.models import Entry, Food, MagicLink, User
 from app.models.user import PRIMARY_METRICS
+from app.services import mealie as mealie_svc
 
 router = APIRouter(prefix="/admin")
 templates = Jinja2Templates(directory="templates")
@@ -17,6 +20,26 @@ templates = Jinja2Templates(directory="templates")
 def _build_magic_url(request: Request, token: str) -> str:
     base = str(request.base_url).rstrip("/")
     return f"{base}/auth/magic/{token}"
+
+
+def _quote(s: str) -> str:
+    from urllib.parse import quote
+    return quote(s)
+
+
+@router.get("")
+async def admin_hub(
+    request: Request,
+    db: AsyncSession = Depends(get_session),
+    admin: User = Depends(require_admin),
+):
+    mealie = await mealie_svc.get_or_create_settings(db)
+    await db.commit()
+    return templates.TemplateResponse(
+        request,
+        "admin/index.html",
+        {"current_user": admin, "mealie": mealie},
+    )
 
 
 @router.get("/users")
@@ -116,6 +139,99 @@ async def regenerate_link(
     )
 
 
+@router.get("/mealie")
+async def mealie_page(
+    request: Request,
+    db: AsyncSession = Depends(get_session),
+    admin: User = Depends(require_admin),
+):
+    cfg = await mealie_svc.get_or_create_settings(db)
+    await db.commit()
+    return templates.TemplateResponse(
+        request,
+        "admin/mealie.html",
+        {
+            "current_user": admin,
+            "mealie": cfg,
+            "mealie_msg": request.query_params.get("mealie_msg"),
+            "mealie_ok": request.query_params.get("mealie_ok") == "1",
+        },
+    )
+
+
+@router.post("/mealie")
+async def save_mealie(
+    url: Optional[str] = Form(None),
+    api_token: Optional[str] = Form(None),
+    db: AsyncSession = Depends(get_session),
+    admin: User = Depends(require_admin),
+):
+    cfg = await mealie_svc.get_or_create_settings(db)
+    new_url = (url or "").strip().rstrip("/")
+    new_token = (api_token or "").strip()
+
+    if not new_url and not new_token:
+        cfg.url = None
+        cfg.api_token = None
+        await db.commit()
+        return RedirectResponse(
+            "/admin/mealie?mealie_ok=1&mealie_msg=" + _quote("Cleared."),
+            status_code=303,
+        )
+
+    if not new_url or not new_token:
+        return RedirectResponse(
+            "/admin/mealie?mealie_ok=0&mealie_msg="
+            + _quote("Both URL and API token are required."),
+            status_code=303,
+        )
+
+    if new_url != cfg.url or new_token != cfg.api_token:
+        ok, msg = await mealie_svc.test_connection(new_url, new_token)
+        if not ok:
+            return RedirectResponse(
+                f"/admin/mealie?mealie_ok=0&mealie_msg={_quote(msg)}",
+                status_code=303,
+            )
+
+    cfg.url = new_url
+    cfg.api_token = new_token
+    await db.commit()
+    return RedirectResponse(
+        "/admin/mealie?mealie_ok=1&mealie_msg=" + _quote("Saved."),
+        status_code=303,
+    )
+
+
+@router.post("/mealie/sync")
+async def sync_mealie(
+    db: AsyncSession = Depends(get_session),
+    admin: User = Depends(require_admin),
+):
+    cfg = await mealie_svc.get_or_create_settings(db)
+    if not cfg.url or not cfg.api_token:
+        return RedirectResponse(
+            "/admin/mealie?mealie_ok=0&mealie_msg="
+            + _quote("Configure Mealie first."),
+            status_code=303,
+        )
+    result = await mealie_svc.sync(db, cfg)
+    await db.commit()
+    if "error" in result:
+        return RedirectResponse(
+            f"/admin/mealie?mealie_ok=0&mealie_msg={_quote(result['error'])}",
+            status_code=303,
+        )
+    msg = (
+        f"{result['imported']} new, {result['updated']} updated, "
+        f"{result['skipped']} skipped (of {result['total']} recipes)"
+    )
+    return RedirectResponse(
+        f"/admin/mealie?mealie_ok=1&mealie_msg={_quote(msg)}",
+        status_code=303,
+    )
+
+
 @router.post("/users/{user_id}/delete")
 async def delete_user(
     user_id: int,
@@ -158,5 +274,4 @@ async def delete_user(
 
 
 def _redirect_with_msg(msg: str) -> RedirectResponse:
-    from urllib.parse import quote
-    return RedirectResponse(f"/admin/users?msg={quote(msg)}", status_code=303)
+    return RedirectResponse(f"/admin/users?msg={_quote(msg)}", status_code=303)

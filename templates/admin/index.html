@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Admin — Bento{% endblock %}
+{% block content %}
+{% import "_icons.html" as icons %}
+{% with back_href="/", title="Admin" %}{% include "_top_bar.html" %}{% endwith %}
+<h1>Admin</h1>
+<p class="muted">Tools for {{ current_user.name }}.</p>
+
+<a href="/admin/users" class="card" style="display:block;text-decoration:none;color:inherit;">
+  <h2 style="margin-top:0;">Users</h2>
+  <p class="muted" style="margin:0;">Create and remove accounts, regenerate magic links.</p>
+</a>
+
+<a href="/admin/mealie" class="card" style="display:block;text-decoration:none;color:inherit;">
+  <h2 style="margin-top:0;">Mealie integration</h2>
+  <p class="muted" style="margin:0;">
+    {% if mealie and mealie.url and mealie.api_token %}
+      Connected to <strong>{{ mealie.url }}</strong>.
+      {% if mealie.last_synced_at %}
+        Last sync {{ mealie.last_synced_at.strftime('%Y-%m-%d %H:%M UTC') }}.
+      {% else %}
+        Not synced yet.
+      {% endif %}
+    {% else %}
+      Not configured.
+    {% endif %}
+  </p>
+</a>
+{% endblock %}

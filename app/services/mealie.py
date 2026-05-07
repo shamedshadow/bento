@@ -54,6 +54,19 @@ async def get_or_create_settings(session: AsyncSession) -> MealieSettings:
     return row
 
 
+async def list_foods(session: AsyncSession, limit: int = 200) -> list[Food]:
+    """All foods that came from Mealie, alphabetical."""
+    rows = (
+        await session.execute(
+            select(Food)
+            .where(Food.source == "mealie")
+            .order_by(Food.name)
+            .limit(limit)
+        )
+    ).scalars().all()
+    return list(rows)
+
+
 async def test_connection(url: str, token: str) -> tuple[bool, str]:
     """Quick auth check against /api/users/self. Returns (ok, message)."""
     if not url or not token:

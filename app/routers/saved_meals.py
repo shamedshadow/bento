@@ -10,6 +10,7 @@ from app.auth.deps import require_user
 from app.db import get_session
 from app.models import Food, User
 from app.models.entry import MEAL_TYPES
+from app.services import mealie as mealie_svc
 from app.services import nutrition
 from app.services import saved_meals as svc
 
@@ -24,10 +25,22 @@ async def list_page(
     user: User = Depends(require_user),
 ):
     meals = await svc.list_for_user(db, user.id)
+    mealie_cfg = await mealie_svc.get_or_create_settings(db)
+    mealie_foods = (
+        await mealie_svc.list_foods(db)
+        if mealie_cfg.url and mealie_cfg.api_token
+        else []
+    )
+    await db.commit()  # commits the singleton row insert if it just happened
     return templates.TemplateResponse(
         request,
         "saved_meals/index.html",
-        {"current_user": user, "meals": meals},
+        {
+            "current_user": user,
+            "meals": meals,
+            "mealie_configured": bool(mealie_cfg.url and mealie_cfg.api_token),
+            "mealie_foods": mealie_foods,
+        },
     )
 
 

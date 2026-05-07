@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Mealie integration — Bento admin{% endblock %}
+{% block content %}
+{% with back_href="/admin", title="Admin" %}{% include "_top_bar.html" %}{% endwith %}
+<h1>Mealie integration</h1>
+<p class="muted">
+  Pull recipes from a self-hosted Mealie instance as Bento foods. Each recipe
+  is treated as <em>1 serving = 100g virtual unit</em>, so per-serving macros
+  map directly onto Bento's per-100g model.
+</p>
+
+<form method="post" action="/admin/mealie" class="card">
+  {% if mealie_msg %}
+    <p class="{% if mealie_ok %}muted{% else %}error{% endif %}" style="margin:0 0 0.5rem;{% if mealie_ok %}color:var(--accent-hi);{% endif %}">
+      {{ mealie_msg }}
+    </p>
+  {% endif %}
+
+  <label>Mealie URL <span class="muted" style="font-weight:400;font-size:0.85rem;">(no trailing slash)</span>
+    <input type="url" name="url" placeholder="https://mealie.example.com" value="{{ mealie.url or '' }}">
+  </label>
+  <label>API token
+    <input type="password" name="api_token" placeholder="long-lived API token" value="{{ mealie.api_token or '' }}">
+  </label>
+  <p class="muted" style="font-size:0.85rem;margin-top:0.25rem;">
+    Generate a token in Mealie: profile menu → API Tokens → New token. The connection is tested before saving.
+  </p>
+  <button type="submit">Save &amp; test</button>
+</form>
+
+{% if mealie and mealie.url and mealie.api_token %}
+  <form method="post" action="/admin/mealie/sync" class="card" style="margin-top:0.75rem;">
+    <p class="muted" style="margin:0 0 0.4rem;">
+      Last sync:
+      {% if mealie.last_synced_at %}
+        {{ mealie.last_synced_at.strftime('%Y-%m-%d %H:%M UTC') }}{% if mealie.last_sync_summary %} · {{ mealie.last_sync_summary }}{% endif %}
+      {% else %}
+        never
+      {% endif %}
+    </p>
+    <button type="submit" class="secondary">Sync now</button>
+    <p class="muted" style="font-size:0.85rem;margin:0.5rem 0 0;">
+      Re-sync is safe — it upserts by Mealie slug, so existing recipes get refreshed nutrition rather than duplicated. Recipes deleted in Mealie remain as Bento foods (no auto-prune in v1).
+    </p>
+  </form>
+{% endif %}
+{% endblock %}
