@@ -5,6 +5,18 @@
     {{ icons.icon('home') }}
     <span>Home</span>
   </a>
+  <a class="bnav-item {% if _path.startswith('/recents') %}active{% endif %}" href="/recents">
+    {{ icons.icon('clock') }}
+    <span>Recents</span>
+  </a>
+  <a class="bnav-item {% if _path.startswith('/favorites') %}active{% endif %}" href="/favorites">
+    {{ icons.icon('star') }}
+    <span>Favorites</span>
+  </a>
+  <a class="bnav-item {% if _path.startswith('/saved-meals') %}active{% endif %}" href="/saved-meals">
+    {{ icons.icon('bookmark') }}
+    <span>Meals</span>
+  </a>
   <a class="bnav-item {% if _path.startswith('/trends') %}active{% endif %}" href="/trends">
     {{ icons.icon('bar-chart') }}
     <span>Trends</span>

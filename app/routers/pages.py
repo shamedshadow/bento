@@ -8,9 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.deps import require_user
 from app.db import get_session
 from app.models import Entry, Food, User
-from app.services import favorites as fav_svc
 from app.services import logging as log_svc
-from app.services import saved_meals as sm_svc
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -71,17 +69,6 @@ async def _build_dashboard_context(
         "meal_order": ["breakfast", "lunch", "dinner", "snack", None],
         "meal_labels": _MEAL_LABELS,
     }
-
-    # Quick-log data only when viewing today (where it's actionable).
-    if is_today:
-        recents = await log_svc.list_recents(db, user, limit=20)
-        favs = await fav_svc.list_for_user(db, user.id)
-        meals = await sm_svc.list_for_user(db, user.id)
-        context.update(
-            {"recents": recents, "favorites": favs, "saved_meals": meals}
-        )
-    else:
-        context.update({"recents": [], "favorites": [], "saved_meals": []})
 
     return context
 

@@ -72,6 +72,11 @@ h3 { font-size: 0.95rem; margin: 0.75rem 0 0.4rem; font-weight: 600; color: var(
   padding: 1.1rem 1.15rem;
   margin-bottom: 0.85rem;
 }
+/* Strip the first/last child's outer margin so cards don't double-pad. */
+.card > *:first-child { margin-top: 0; }
+.card > *:last-child { margin-bottom: 0; }
+.card > p:first-child > .btn:only-child,
+.card > p:first-child > button:only-child { margin-top: 0; }
 
 label {
   display: block;
@@ -516,14 +521,15 @@ button:disabled, .btn:disabled {
   align-items: center;
   justify-content: center;
   gap: 0.15rem;
-  padding: 0.4rem 0.5rem;
+  padding: 0.35rem 0.25rem;
   color: var(--text-muted);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 500;
   text-decoration: none;
   border-radius: var(--radius-sm);
   min-height: 56px;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 .bnav-item:hover { color: var(--text); }
 .bnav-item.active { color: var(--accent-hi); }
