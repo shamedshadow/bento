@@ -10,6 +10,16 @@
   <p><button type="button" class="secondary" id="cancel-btn">Cancel</button></p>
 </div>
 
+<form id="manual-form" class="card">
+  <h2 style="margin-top:0;">Enter manually</h2>
+  <p class="muted" style="margin-top:0;">If the camera can't read it, type the digits below the bars.</p>
+  <label>Barcode
+    <input type="text" id="manual-input" inputmode="numeric" pattern="[0-9]{4,}"
+           autocomplete="off" placeholder="e.g. 3017620422003" required>
+  </label>
+  <button type="submit">Look up</button>
+</form>
+
 <div id="result"></div>
 {% endblock %}
 
@@ -20,27 +30,13 @@
   const status = document.getElementById('status');
   const result = document.getElementById('result');
   const cancelBtn = document.getElementById('cancel-btn');
+  const manualForm = document.getElementById('manual-form');
+  const manualInput = document.getElementById('manual-input');
   let scanner = null;
 
   function showError(msg) {
     status.textContent = msg;
     status.className = 'error';
-  }
-
-  // Pre-flight: camera APIs are only exposed in secure contexts (HTTPS or
-  // localhost). On plain HTTP from another device, give a clear answer
-  // instead of html5-qrcode's generic "Camera streaming not supported".
-  if (!window.isSecureContext || !navigator.mediaDevices) {
-    result.innerHTML = `
-      <div class="card">
-        <h2>Camera blocked: insecure connection</h2>
-        <p>Your browser only allows camera access over HTTPS (or via <code>localhost</code>).
-           This page is being served over plain HTTP, so scanning is disabled.</p>
-        <p class="muted">Fix: serve Bento over HTTPS. For dev, that means a
-           self-signed cert; for the homelab, a reverse proxy with a real cert.</p>
-      </div>`;
-    showError('Camera unavailable over HTTP.');
-    return;
   }
 
   async function lookupBarcode(code) {
@@ -74,12 +70,35 @@
     }
   }
 
+  // Manual entry always works, even when the camera doesn't.
+  manualForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const code = manualInput.value.trim();
+    if (!code) return;
+    stopScanner();
+    lookupBarcode(code);
+  });
+
   cancelBtn.addEventListener('click', () => {
     stopScanner();
     window.location.href = '/foods';
   });
 
-  // Start scanner on load
+  // Pre-flight: camera APIs are only exposed in secure contexts (HTTPS or
+  // localhost). On plain HTTP from another device, surface a clear message
+  // and disable the live-scan UI — but keep the manual form usable.
+  if (!window.isSecureContext || !navigator.mediaDevices) {
+    result.innerHTML = `
+      <div class="card">
+        <h2>Camera blocked: insecure connection</h2>
+        <p>Your browser only allows camera access over HTTPS (or via <code>localhost</code>).
+           This page is being served over plain HTTP, so live scanning is disabled. You can still type the barcode below.</p>
+      </div>`;
+    showError('Camera unavailable over HTTP — manual entry below still works.');
+    return;
+  }
+
+  // Start the camera scanner.
   window.addEventListener('DOMContentLoaded', () => {
     scanner = new Html5Qrcode('reader');
     const config = {
