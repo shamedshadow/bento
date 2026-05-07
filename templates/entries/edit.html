@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Edit entry — Bento{% endblock %}
+{% block content %}
+<h1>Edit entry</h1>
+<p class="muted">
+  {{ food.name }}{% if food.brand %} — {{ food.brand }}{% endif %} ·
+  <a href="/today">← back to today</a>
+</p>
+
+<form method="post" action="/entries/{{ entry.id }}/edit" class="card">
+  <label>Amount (grams)
+    <input type="number" name="amount_g" step="0.1" min="0.1" required
+           value="{{ entry.amount_g }}">
+  </label>
+
+  <label>Meal</label>
+  <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+    {% for m in meal_types %}
+      <label style="flex:1;min-width:80px;">
+        <input type="radio" name="meal_type" value="{{ m }}" style="display:none;"
+               {% if entry.meal_type == m %}checked{% endif %}>
+        <span class="btn {% if entry.meal_type != m %}secondary{% endif %}"
+              style="display:block;text-align:center;width:100%;margin:0;font-size:0.9rem;">
+          {{ m|capitalize }}
+        </span>
+      </label>
+    {% endfor %}
+  </div>
+
+  <label>When
+    <input type="datetime-local" name="logged_at" value="{{ logged_at_local }}">
+  </label>
+
+  <label>Notes
+    <textarea name="notes" rows="2">{{ entry.notes or '' }}</textarea>
+  </label>
+
+  <button type="submit">Save</button>
+</form>
+
+<form method="post" action="/entries/{{ entry.id }}/delete" style="margin-top:0.75rem;"
+      onsubmit="return confirm('Delete this entry?')">
+  <button type="submit" class="secondary">Delete entry</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('input[name="meal_type"]').forEach((r) => {
+  r.addEventListener('change', () => {
+    document.querySelectorAll('input[name="meal_type"]').forEach((other) => {
+      const span = other.parentElement.querySelector('span');
+      if (other.checked) span.classList.remove('secondary');
+      else span.classList.add('secondary');
+    });
+  });
+});
+</script>
+{% endblock %}

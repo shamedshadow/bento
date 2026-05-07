@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Log {{ food.name }} — Bento{% endblock %}
+{% block content %}
+<h1>Log {{ food.name }}</h1>
+<p class="muted">
+  {% if food.brand %}{{ food.brand }} · {% endif %}
+  <a href="/foods/{{ food.id }}">food details</a>
+</p>
+
+<form method="post" action="/foods/{{ food.id }}/log" class="card"
+      id="log-form"
+      data-cal100="{{ food.calories_per_100g or '' }}"
+      data-carbs100="{{ food.carbs_per_100g or '' }}"
+      data-fiber100="{{ food.fiber_per_100g or '' }}"
+      data-prot100="{{ food.protein_per_100g or '' }}"
+      data-fat100="{{ food.fat_per_100g or '' }}"
+      data-serving-g="{{ food.default_serving_g or '' }}">
+
+  <label>Amount
+    <div style="display:flex;gap:0.5rem;align-items:center;">
+      <input type="number" id="amount-input" step="0.1" min="0" required
+             style="flex:1" value="{{ default_amount_g }}">
+      <select id="unit-select" style="width:auto;">
+        <option value="g" selected>g</option>
+        {% if food.default_serving_g %}
+          <option value="serv">serving{% if food.default_serving_label %} ({{ food.default_serving_label }}){% endif %}</option>
+        {% endif %}
+      </select>
+    </div>
+    <input type="hidden" name="amount_g" id="amount-g">
+  </label>
+
+  <div id="nutrient-preview" class="muted" style="margin-top:0.5rem;font-size:0.9rem;">
+    <span id="preview-cal"></span>
+    <span id="preview-carbs"></span>
+    <span id="preview-protein"></span>
+    <span id="preview-fat"></span>
+  </div>
+
+  <label>Meal</label>
+  <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+    {% for m in meal_types %}
+      <label style="flex:1;min-width:80px;">
+        <input type="radio" name="meal_type" value="{{ m }}" style="display:none;">
+        <span class="btn secondary" style="display:block;text-align:center;width:100%;margin:0;font-size:0.9rem;">
+          {{ m|capitalize }}
+        </span>
+      </label>
+    {% endfor %}
+  </div>
+
+  <label>When
+    <input type="datetime-local" name="logged_at" value="{{ now_local }}">
+  </label>
+
+  <details>
+    <summary class="muted" style="cursor:pointer;margin-top:0.75rem;">Add a note</summary>
+    <label>Notes
+      <textarea name="notes" rows="2"></textarea>
+    </label>
+  </details>
+
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <button type="submit" id="submit-btn">Log it</button>
+</form>
+
+<p style="margin-top:0.5rem;"><a href="/foods/{{ food.id }}" class="muted">← cancel</a></p>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const form = document.getElementById('log-form');
+  const amountInput = document.getElementById('amount-input');
+  const unitSelect = document.getElementById('unit-select');
+  const amountG = document.getElementById('amount-g');
+  const cal = parseFloat(form.dataset.cal100) || null;
+  const carbs = parseFloat(form.dataset.carbs100) || null;
+  const fiber = parseFloat(form.dataset.fiber100) || null;
+  const prot = parseFloat(form.dataset.prot100) || null;
+  const fat = parseFloat(form.dataset.fat100) || null;
+  const servingG = parseFloat(form.dataset.servingG) || null;
+
+  function recompute() {
+    const value = parseFloat(amountInput.value) || 0;
+    const grams = unitSelect.value === 'serv' && servingG
+      ? value * servingG : value;
+    amountG.value = grams.toFixed(2);
+    const f = grams / 100.0;
+    const fmt = (v, label, unit, digits=0) =>
+      v == null ? '' : ` · ${(v*f).toFixed(digits)}${unit} ${label}`;
+    document.getElementById('preview-cal').textContent =
+      cal == null ? '' : `${(cal*f).toFixed(0)} kcal`;
+    document.getElementById('preview-carbs').textContent =
+      carbs == null ? '' : ` · ${(carbs*f).toFixed(1)}g carbs`;
+    document.getElementById('preview-protein').textContent =
+      prot == null ? '' : ` · ${(prot*f).toFixed(1)}g protein`;
+    document.getElementById('preview-fat').textContent =
+      fat == null ? '' : ` · ${(fat*f).toFixed(1)}g fat`;
+  }
+
+  amountInput.addEventListener('input', recompute);
+  unitSelect.addEventListener('change', recompute);
+  recompute();
+
+  // Style meal-type radios as toggles
+  document.querySelectorAll('input[name="meal_type"]').forEach((r) => {
+    r.addEventListener('change', () => {
+      document.querySelectorAll('input[name="meal_type"]').forEach((other) => {
+        const span = other.parentElement.querySelector('span');
+        if (other.checked) {
+          span.classList.remove('secondary');
+        } else {
+          span.classList.add('secondary');
+        }
+      });
+    });
+  });
+})();
+</script>
+{% endblock %}
