@@ -36,6 +36,18 @@ def _utc_to_local(naive_utc: datetime, user: User) -> datetime:
     return naive_utc.replace(tzinfo=timezone.utc).astimezone(logsvc._user_tz(user))
 
 
+def _meal_type_for_local_hour(hour: int) -> str:
+    """Pick a sensible default meal_type when the user doesn't choose one
+    (used by the quick-log buttons on /recents, /favorites, etc.)."""
+    if hour < 11:
+        return "breakfast"
+    if hour < 15:
+        return "lunch"
+    if hour < 21:
+        return "dinner"
+    return "snack"
+
+
 # ----- JSON API --------------------------------------------------------------
 
 
@@ -167,6 +179,11 @@ async def log_submit(
         _localize_to_utc_naive(parsed, user) if parsed else None
     )
 
+    # Quick-log paths submit only amount_g; auto-pick meal_type by current hour.
+    if not meal_type:
+        now_local = datetime.now(timezone.utc).astimezone(logsvc._user_tz(user))
+        meal_type = _meal_type_for_local_hour(now_local.hour)
+
     await logsvc.create_entry(
         db,
         user_id=user.id,
@@ -177,7 +194,7 @@ async def log_submit(
         logged_at=logged_at_utc,
     )
     await db.commit()
-    return RedirectResponse("/today", status_code=303)
+    return RedirectResponse("/", status_code=303)
 
 
 @router.get("/entries/{entry_id}/edit")

@@ -579,6 +579,77 @@ button:disabled, .btn:disabled {
 .fav-btn .icon-star { fill: none; }
 .fav-btn.active .icon-star { fill: currentColor; }
 
+/* --- Meal-type chips (2x2 grid) --- */
+.meal-chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+}
+.meal-chips label { margin: 0; }
+.meal-chips input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.meal-chips .btn {
+  display: block;
+  width: 100%;
+  margin: 0;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+/* --- Square icon button (Edit/Delete on entry rows, etc.) --- */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 1px solid var(--border-hi);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.icon-btn:hover { color: var(--text); border-color: var(--accent-dim); background: var(--surface-2); }
+.icon-btn.warn:hover { color: var(--warn-hi); border-color: var(--warn); }
+
+/* --- Row with action (e.g., quick-log button on Recents/Favorites) --- */
+.row-action {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.7rem 0.85rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.row-action:hover { border-color: var(--accent-dim); }
+.row-action .row-info {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+  text-decoration: none;
+}
+.row-action .row-info:hover { color: var(--accent-hi); }
+.row-action .row-info .meta { color: var(--text-muted); font-size: 0.85rem; }
+.row-action .quick-log {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  min-height: 36px;
+  white-space: nowrap;
+}
+.row-action form { margin: 0; }
+
 /* Small details polishing */
 details > summary { color: var(--text-muted); }
 details[open] > summary { color: var(--text); }

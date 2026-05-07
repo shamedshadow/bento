@@ -53,6 +53,9 @@
 {% block scripts %}
 {% if has_data %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+{% if show_scatter %}
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+{% endif %}
 <script>
 (function () {
   const data = JSON.parse(document.getElementById('chart-data').textContent);
@@ -157,8 +160,5 @@
   }
 })();
 </script>
-{% if show_scatter %}
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-{% endif %}
 {% endif %}
 {% endblock %}

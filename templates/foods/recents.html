@@ -1,22 +1,27 @@
 {% extends "base.html" %}
 {% block title %}Recents — Bento{% endblock %}
 {% block content %}
+{% import "_icons.html" as icons %}
 {% with back_href="/", title="Recents" %}{% include "_top_bar.html" %}{% endwith %}
 <h1>Recents</h1>
-<p class="muted">Last 14 days, ordered by frequency.</p>
+<p class="muted">Last 14 days, ordered by how often you logged each.</p>
 
-{% import "_icons.html" as icons %}
 {% if pairs %}
   <ul class="user-list">
     {% for food, count in pairs %}
       <li>
-        <a href="/foods/{{ food.id }}/log">
-          <strong>{{ food.name }}</strong>{% if food.brand %} <span class="muted">— {{ food.brand }}</span>{% endif %}<br>
-          <span class="muted">
-            logged {{ count }}× ·
-            {% if food.calories_per_100g is not none %}{{ food.calories_per_100g|round(0) }} kcal/100g{% endif %}
-          </span>
-        </a>
+        <div class="row-action">
+          <a href="/foods/{{ food.id }}/log" class="row-info">
+            <strong>{{ food.name }}</strong>{% if food.brand %} <span class="meta">— {{ food.brand }}</span>{% endif %}
+            <div class="meta">
+              {{ count }}× last 14d{% if food.calories_per_100g is not none %} · {{ food.calories_per_100g|round(0)|int }} kcal/100g{% endif %}
+            </div>
+          </a>
+          <form method="post" action="/foods/{{ food.id }}/log">
+            <input type="hidden" name="amount_g" value="{{ food.default_serving_g or 100 }}">
+            <button type="submit" class="quick-log">{{ icons.icon('plus', 'icon icon-sm') }}<span>Log</span></button>
+          </form>
+        </div>
       </li>
     {% endfor %}
   </ul>

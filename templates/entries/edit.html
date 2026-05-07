@@ -12,15 +12,12 @@
   </label>
 
   <label>Meal</label>
-  <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+  <div class="meal-chips">
     {% for m in meal_types %}
-      <label style="flex:1;min-width:80px;">
-        <input type="radio" name="meal_type" value="{{ m }}" style="display:none;"
+      <label>
+        <input type="radio" name="meal_type" value="{{ m }}"
                {% if entry.meal_type == m %}checked{% endif %}>
-        <span class="btn {% if entry.meal_type != m %}secondary{% endif %}"
-              style="display:block;text-align:center;width:100%;margin:0;font-size:0.9rem;">
-          {{ m|capitalize }}
-        </span>
+        <span class="btn {% if entry.meal_type != m %}secondary{% endif %}">{{ m|capitalize }}</span>
       </label>
     {% endfor %}
   </div>

@@ -1,30 +1,23 @@
 {% extends "base.html" %}
 {% block title %}Saved meals — Bento{% endblock %}
 {% block content %}
+{% import "_icons.html" as icons %}
 {% with back_href="/", title="Saved meals" %}{% include "_top_bar.html" %}{% endwith %}
 <h1>Saved meals</h1>
 
-<div class="card">
-  <p><a class="btn" href="/saved-meals/new">Create a saved meal</a></p>
-  <p class="muted">Or save today's meals from the <a href="/today">log view</a>.</p>
-</div>
-
-{% import "_icons.html" as icons %}
 {% if meals %}
   <ul class="user-list">
     {% for m in meals %}
       <li>
-        <div style="padding:0.85rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;">
-          <div style="display:flex;justify-content:space-between;gap:0.5rem;align-items:flex-start;">
-            <div style="flex:1;min-width:0;">
-              <a href="/saved-meals/{{ m.id }}"><strong>{{ m.name }}</strong></a>
-              {% if m.default_meal_type %}<span class="muted"> · {{ m.default_meal_type }}</span>{% endif %}<br>
-              <span class="muted">{{ m.items|length }} item{{ '' if m.items|length == 1 else 's' }}</span>
-            </div>
-            <form method="post" action="/saved-meals/{{ m.id }}/log" style="margin:0;">
-              <button type="submit" style="margin:0;font-size:0.85rem;padding:0.4rem 0.7rem;min-height:36px;">Log</button>
-            </form>
-          </div>
+        <div class="row-action">
+          <a href="/saved-meals/{{ m.id }}" class="row-info">
+            <strong>{{ m.name }}</strong>
+            {% if m.default_meal_type %}<span class="meta"> · {{ m.default_meal_type }}</span>{% endif %}
+            <div class="meta">{{ m.items|length }} item{{ '' if m.items|length == 1 else 's' }}</div>
+          </a>
+          <form method="post" action="/saved-meals/{{ m.id }}/log">
+            <button type="submit" class="quick-log">{{ icons.icon('plus', 'icon icon-sm') }}<span>Log</span></button>
+          </form>
         </div>
       </li>
     {% endfor %}
@@ -33,7 +26,7 @@
   <div class="card empty-state">
     {{ icons.icon('bookmark', 'icon icon-xl') }}
     <p>No saved meals yet.</p>
-    <p class="hint">Save a meal from any logged day, or create one from scratch.</p>
+    <p class="hint">Tap <strong>+</strong> below → <em>New saved meal</em>, or save a meal from any logged day on Home.</p>
   </div>
 {% endif %}
 {% endblock %}

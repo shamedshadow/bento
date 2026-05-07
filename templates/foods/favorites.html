@@ -1,22 +1,28 @@
 {% extends "base.html" %}
 {% block title %}Favorites — Bento{% endblock %}
 {% block content %}
+{% import "_icons.html" as icons %}
 {% with back_href="/", title="Favorites" %}{% include "_top_bar.html" %}{% endwith %}
 <h1>Favorites</h1>
 
-{% import "_icons.html" as icons %}
 {% if foods %}
   <ul class="user-list">
     {% for f in foods %}
       <li>
-        <a href="/foods/{{ f.id }}/log">
-          <strong>{{ f.name }}</strong>{% if f.brand %} <span class="muted">— {{ f.brand }}</span>{% endif %}<br>
-          <span class="muted">
-            {% if f.calories_per_100g is not none %}{{ f.calories_per_100g|round(0) }} kcal{% endif %}
-            {% if f.carbs_per_100g is not none %} · {{ f.carbs_per_100g|round(1) }}g carbs{% endif %}
-            · per 100g
-          </span>
-        </a>
+        <div class="row-action">
+          <a href="/foods/{{ f.id }}/log" class="row-info">
+            <strong>{{ f.name }}</strong>{% if f.brand %} <span class="meta">— {{ f.brand }}</span>{% endif %}
+            <div class="meta">
+              {% if f.calories_per_100g is not none %}{{ f.calories_per_100g|round(0)|int }} kcal{% endif %}
+              {% if f.carbs_per_100g is not none %} · {{ f.carbs_per_100g|round(1) }}g carbs{% endif %}
+              · per 100g
+            </div>
+          </a>
+          <form method="post" action="/foods/{{ f.id }}/log">
+            <input type="hidden" name="amount_g" value="{{ f.default_serving_g or 100 }}">
+            <button type="submit" class="quick-log">{{ icons.icon('plus', 'icon icon-sm') }}<span>Log</span></button>
+          </form>
+        </div>
       </li>
     {% endfor %}
   </ul>
