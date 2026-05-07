@@ -104,7 +104,9 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 3px rgba(136, 176, 140, 0.18);
 }
 
-input[inputmode="numeric"] {
+/* PIN entry: large, centered, spaced. Only target masked numeric inputs so
+   plain text fields like the manual barcode entry get normal styling. */
+input[type="password"][inputmode="numeric"] {
   font-size: 1.5rem;
   letter-spacing: 0.4em;
   text-align: center;
