@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Find a food — Bento{% endblock %}
 {% block content %}
+{% with back_href="/", title="Find a food" %}{% include "_top_bar.html" %}{% endwith %}
 <h1>Find a food</h1>
-<p class="muted"><a href="/">← back</a></p>
 
 <div class="card">
   <label>Search foods you've logged before

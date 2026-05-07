@@ -1,11 +1,9 @@
 {% extends "base.html" %}
 {% block title %}{{ meal.name }} — Bento{% endblock %}
 {% block content %}
+{% with back_href="/saved-meals", title="Saved meals" %}{% include "_top_bar.html" %}{% endwith %}
 <h1>{{ meal.name }}</h1>
-<p class="muted">
-  {% if meal.default_meal_type %}default: {{ meal.default_meal_type }} · {% endif %}
-  <a href="/saved-meals">← all saved meals</a>
-</p>
+{% if meal.default_meal_type %}<p class="muted">default: {{ meal.default_meal_type }}</p>{% endif %}
 
 <div class="card">
   <form method="post" action="/saved-meals/{{ meal.id }}/log" style="margin:0;">

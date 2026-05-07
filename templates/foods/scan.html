@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Scan barcode — Bento{% endblock %}
 {% block content %}
+{% with back_href="/foods", title="Scan" %}{% include "_top_bar.html" %}{% endwith %}
 <h1>Scan barcode</h1>
-<p class="muted"><a href="/foods">← back</a></p>
 
 <div class="card">
   <div id="reader" style="width:100%; max-width:480px;"></div>

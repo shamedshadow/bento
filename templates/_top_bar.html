@@ -1,0 +1,25 @@
+{% import "_icons.html" as icons %}
+{# Standard top bar: brand on the left, gear menu on the right.
+   `back_href` (optional): if provided, brand becomes a "back" link with a chevron.
+   `title` (optional): override the brand text (default "Bento"). #}
+<div class="top-bar">
+  {% if back_href %}
+    <a class="back" href="{{ back_href }}">{{ icons.icon('chevron-left', 'icon icon-sm') }}<span>{{ title or 'Back' }}</span></a>
+  {% else %}
+    <a class="brand-link" href="/">{{ title or 'Bento' }}</a>
+  {% endif %}
+
+  <details class="gear-menu">
+    <summary aria-label="Settings menu">{{ icons.icon('settings') }}</summary>
+    <div class="gear-panel">
+      <a href="/settings">{{ icons.icon('settings', 'icon icon-sm') }}<span>Settings</span></a>
+      {% if current_user and current_user.is_admin %}
+        <a href="/admin/users">{{ icons.icon('shield', 'icon icon-sm') }}<span>Admin</span></a>
+      {% endif %}
+      <hr>
+      <form method="post" action="/auth/logout" style="margin:0;">
+        <button type="submit" class="link-button">{{ icons.icon('log-out', 'icon icon-sm') }}<span>Sign out</span></button>
+      </form>
+    </div>
+  </details>
+</div>

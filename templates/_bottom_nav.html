@@ -1,0 +1,12 @@
+{% import "_icons.html" as icons %}
+{% set _path = request.url.path %}
+<nav class="bottom-nav" aria-label="Primary">
+  <a class="bnav-item {% if _path == '/' or _path == '/today' %}active{% endif %}" href="/">
+    {{ icons.icon('home') }}
+    <span>Home</span>
+  </a>
+  <a class="bnav-item {% if _path.startswith('/trends') %}active{% endif %}" href="/trends">
+    {{ icons.icon('bar-chart') }}
+    <span>Trends</span>
+  </a>
+</nav>

@@ -1,0 +1,40 @@
+{% import "_icons.html" as icons %}
+<div class="fab-cluster" data-fab-cluster>
+  <ul class="fab-menu" id="fab-menu" hidden>
+    <li><a href="/foods/scan">{{ icons.icon('camera', 'icon') }}<span>Scan barcode</span></a></li>
+    <li><a href="/saved-meals">{{ icons.icon('bookmark', 'icon') }}<span>Saved meals</span></a></li>
+    <li><a href="/recents">{{ icons.icon('clock', 'icon') }}<span>Recents</span></a></li>
+    <li><a href="/favorites">{{ icons.icon('star', 'icon') }}<span>Favorites</span></a></li>
+    <li><a href="/foods">{{ icons.icon('search', 'icon') }}<span>Search foods</span></a></li>
+  </ul>
+  <button type="button" class="fab" aria-expanded="false" aria-controls="fab-menu" aria-label="Quick log">
+    {{ icons.icon('plus') }}
+  </button>
+</div>
+<script>
+(function () {
+  const cluster = document.querySelector('[data-fab-cluster]');
+  if (!cluster) return;
+  const fab = cluster.querySelector('.fab');
+  const menu = cluster.querySelector('.fab-menu');
+  if (!fab || !menu) return;
+  function close() {
+    menu.hidden = true;
+    fab.setAttribute('aria-expanded', 'false');
+  }
+  function open() {
+    menu.hidden = false;
+    fab.setAttribute('aria-expanded', 'true');
+  }
+  fab.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (menu.hidden) open(); else close();
+  });
+  document.addEventListener('click', (e) => {
+    if (!cluster.contains(e.target)) close();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') close();
+  });
+})();
+</script>

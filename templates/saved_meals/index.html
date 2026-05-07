@@ -1,14 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Saved meals — Bento{% endblock %}
 {% block content %}
+{% with back_href="/", title="Saved meals" %}{% include "_top_bar.html" %}{% endwith %}
 <h1>Saved meals</h1>
-<p class="muted"><a href="/">← back</a></p>
 
 <div class="card">
   <p><a class="btn" href="/saved-meals/new">Create a saved meal</a></p>
   <p class="muted">Or save today's meals from the <a href="/today">log view</a>.</p>
 </div>
 
+{% import "_icons.html" as icons %}
 {% if meals %}
   <ul class="user-list">
     {% for m in meals %}
@@ -21,7 +22,7 @@
               <span class="muted">{{ m.items|length }} item{{ '' if m.items|length == 1 else 's' }}</span>
             </div>
             <form method="post" action="/saved-meals/{{ m.id }}/log" style="margin:0;">
-              <button type="submit" style="margin:0;font-size:0.85rem;padding:0.3rem 0.6rem;">Log</button>
+              <button type="submit" style="margin:0;font-size:0.85rem;padding:0.4rem 0.7rem;min-height:36px;">Log</button>
             </form>
           </div>
         </div>
@@ -29,8 +30,10 @@
     {% endfor %}
   </ul>
 {% else %}
-  <div class="card">
-    <p class="muted">No saved meals yet.</p>
+  <div class="card empty-state">
+    {{ icons.icon('bookmark', 'icon icon-xl') }}
+    <p>No saved meals yet.</p>
+    <p class="hint">Save a meal from any logged day, or create one from scratch.</p>
   </div>
 {% endif %}
 {% endblock %}

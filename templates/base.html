@@ -9,9 +9,13 @@
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 </head>
 <body>
-  <main>
+  <main{% if no_shell %} class="no-shell"{% endif %}>
     {% block content %}{% endblock %}
   </main>
+  {% if request.state.current_user and not no_shell %}
+    {% include "_bottom_nav.html" %}
+    {% include "_fab.html" %}
+  {% endif %}
   {% block scripts %}{% endblock %}
 </body>
 </html>

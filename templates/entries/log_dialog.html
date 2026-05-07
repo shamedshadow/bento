@@ -1,11 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Log {{ food.name }} — Bento{% endblock %}
 {% block content %}
+{% with back_href='/foods/' ~ food.id, title="Cancel" %}{% include "_top_bar.html" %}{% endwith %}
 <h1>Log {{ food.name }}</h1>
-<p class="muted">
-  {% if food.brand %}{{ food.brand }} · {% endif %}
-  <a href="/foods/{{ food.id }}">food details</a>
-</p>
+{% if food.brand %}<p class="muted">{{ food.brand }}</p>{% endif %}
 
 <form method="post" action="/foods/{{ food.id }}/log" class="card"
       id="log-form"

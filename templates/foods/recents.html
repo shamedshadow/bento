@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Recents — Bento{% endblock %}
 {% block content %}
+{% with back_href="/", title="Recents" %}{% include "_top_bar.html" %}{% endwith %}
 <h1>Recents</h1>
-<p class="muted">Last 14 days, ordered by frequency. <a href="/foods">← back</a></p>
+<p class="muted">Last 14 days, ordered by frequency.</p>
 
+{% import "_icons.html" as icons %}
 {% if pairs %}
   <ul class="user-list">
     {% for food, count in pairs %}
@@ -19,8 +21,10 @@
     {% endfor %}
   </ul>
 {% else %}
-  <div class="card">
-    <p class="muted">Nothing logged in the last 14 days. Log a food and it'll show up here.</p>
+  <div class="card empty-state">
+    {{ icons.icon('clock', 'icon icon-xl') }}
+    <p>Nothing logged in the last 14 days.</p>
+    <p class="hint">Log a food and it'll show up here.</p>
   </div>
 {% endif %}
 {% endblock %}

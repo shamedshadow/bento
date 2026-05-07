@@ -48,7 +48,11 @@ body {
 main {
   max-width: 480px;
   margin: 0 auto;
-  padding: 1.5rem 1.25rem 2.25rem;
+  /* Bottom padding clears the fixed bottom nav (≈64px) + iOS safe area. */
+  padding: 1.25rem 1.25rem calc(5.25rem + env(safe-area-inset-bottom));
+}
+main.no-shell {
+  padding-bottom: 1.5rem;
 }
 
 a {
@@ -106,8 +110,12 @@ input[type="date"], input[type="time"] { color-scheme: dark; }
 select { color-scheme: dark; }
 
 button, .btn {
-  display: inline-block;
-  padding: 0.6rem 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0.65rem 1.05rem;
   margin-top: 1rem;
   font-size: 0.95rem;
   font-weight: 500;
@@ -280,27 +288,73 @@ button:disabled, .btn:disabled {
 .quick-card:hover { border-color: var(--accent-dim); }
 .quick-card .meta { color: var(--text-muted); font-size: 0.85rem; }
 
-/* Floating action button */
-.fab {
+/* --- Floating action button + popout menu --- */
+.fab-cluster {
   position: fixed;
   right: 1.25rem;
-  bottom: 1.25rem;
+  /* Sit above the bottom nav (~64px tall + safe area) with a small gap. */
+  bottom: calc(72px + env(safe-area-inset-bottom));
+  z-index: 70;
+}
+.fab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 56px;
   height: 56px;
+  min-height: 56px;
+  margin: 0;
   border-radius: 50%;
   background: var(--accent);
   color: #0d130f;
-  font-size: 1.75rem;
-  font-weight: 500;
-  line-height: 56px;
+  border: 0;
   text-align: center;
   box-shadow: var(--shadow);
   text-decoration: none;
-  z-index: 100;
-  transition: background 0.12s, transform 0.12s;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.18s;
+  padding: 0;
 }
 .fab:hover { background: var(--accent-hi); color: #0d130f; }
 .fab:active { transform: scale(0.94); }
+.fab .icon { width: 24px; height: 24px; }
+.fab[aria-expanded="true"] {
+  background: var(--accent-hi);
+  transform: rotate(45deg);
+}
+
+.fab-menu {
+  list-style: none;
+  margin: 0 0 0.55rem;
+  padding: 0.35rem;
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.4rem);
+  min-width: 12rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  animation: fab-menu-in 0.14s ease-out;
+}
+.fab-menu li { margin: 0; }
+.fab-menu a {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.75rem;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.95rem;
+  border-radius: 4px;
+}
+.fab-menu a:hover { background: var(--surface-2); color: var(--accent-hi); }
+.fab-menu a .icon { color: var(--text-muted); width: 18px; height: 18px; }
+.fab-menu a:hover .icon { color: var(--accent-hi); }
+@keyframes fab-menu-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 /* Inline "row" container (used in /today entries, saved meal items, etc.) */
 .row-card {
@@ -338,19 +392,186 @@ button:disabled, .btn:disabled {
 }
 .btn-danger:hover { background: var(--warn-hi); border-color: var(--warn-hi); color: #1a120c; }
 
-/* Inline link-styled button (e.g., sign-out in top bar) */
+/* Inline link-styled button (e.g., sign-out in gear menu) */
 .link-button {
+  display: block;
+  width: 100%;
+  text-align: left;
   background: none;
   border: 0;
-  color: var(--text-muted);
-  font-size: 0.9rem;
+  color: var(--text);
+  font-size: 0.95rem;
   font-family: inherit;
-  padding: 0;
+  padding: 0.55rem 0.75rem;
   margin: 0;
   cursor: pointer;
-  text-decoration: underline;
+  text-decoration: none;
+  border-radius: 4px;
+  min-height: 0;
 }
-.link-button:hover { color: var(--accent); }
+.link-button:hover { background: var(--surface-2); color: var(--accent-hi); }
+
+/* --- Icons --- */
+.icon {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.icon-sm { width: 16px; height: 16px; }
+.icon-lg { width: 24px; height: 24px; }
+.icon-xl { width: 28px; height: 28px; }
+
+/* --- Top bar (brand + gear) --- */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0 1rem;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+.top-bar a { color: var(--text-muted); text-decoration: none; }
+.top-bar a:hover { color: var(--accent); }
+.top-bar .brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: -0.005em;
+}
+.top-bar .back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.6rem 0.4rem 0.4rem;
+  border-radius: var(--radius-sm);
+  min-height: 36px;
+}
+.top-bar .back:hover { background: var(--surface-2); }
+
+/* --- Gear menu (CSS-only popover via <details>) --- */
+.gear-menu { position: relative; }
+.gear-menu summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-muted);
+  list-style: none;
+}
+.gear-menu summary::-webkit-details-marker { display: none; }
+.gear-menu summary::marker { content: ""; }
+.gear-menu summary:hover { background: var(--surface-2); color: var(--text); }
+.gear-menu[open] summary { background: var(--surface-2); color: var(--text); }
+.gear-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.35rem);
+  min-width: 11rem;
+  padding: 0.35rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  z-index: 60;
+}
+.gear-panel a {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 4px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+.gear-panel a:hover { background: var(--surface-2); color: var(--accent-hi); }
+.gear-panel hr { margin: 0.35rem 0; }
+
+/* --- Bottom navigation --- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 0.35rem 0.5rem max(0.35rem, env(safe-area-inset-bottom));
+  z-index: 50;
+  backdrop-filter: blur(8px);
+}
+.bnav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0.4rem 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  min-height: 56px;
+  letter-spacing: 0.02em;
+}
+.bnav-item:hover { color: var(--text); }
+.bnav-item.active { color: var(--accent-hi); }
+.bnav-item .icon { width: 22px; height: 22px; }
+
+/* --- Empty states --- */
+.empty-state {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  color: var(--text-muted);
+}
+.empty-state .icon {
+  width: 32px;
+  height: 32px;
+  color: var(--text-faint);
+  margin-bottom: 0.5rem;
+}
+.empty-state p { margin: 0.4rem 0; }
+.empty-state .hint { font-size: 0.85rem; }
+
+/* --- HTMX in-flight skeleton-ish fade --- */
+[hx-target].htmx-request,
+.htmx-request[hx-target] {
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+
+/* --- Star toggle (favorite) --- */
+.fav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-hi);
+  margin: 0;
+}
+.fav-btn:hover { background: var(--surface-2); color: var(--text); }
+.fav-btn.active {
+  background: var(--accent-bg);
+  color: var(--accent-hi);
+  border-color: var(--accent-dim);
+}
+.fav-btn.active:hover { background: var(--accent-bg); color: var(--accent-hi); }
+
+/* Star icon's filled vs outlined state */
+.fav-btn .icon-star { fill: none; }
+.fav-btn.active .icon-star { fill: currentColor; }
 
 /* Small details polishing */
 details > summary { color: var(--text-muted); }

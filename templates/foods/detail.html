@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% block title %}{{ food.name }} — Bento{% endblock %}
 {% block content %}
+{% with back_href="/foods", title="Food" %}{% include "_top_bar.html" %}{% endwith %}
 <h1>{{ food.name }}</h1>
 <p class="muted">
   {% if food.brand %}{{ food.brand }} · {% endif %}
   {% if food.source == 'openfoodfacts' %}Open Food Facts{% elif food.source == 'usda' %}USDA{% else %}Custom{% endif %}
   {% if food.barcode %} · barcode {{ food.barcode }}{% endif %}
 </p>
-<p class="muted"><a href="/foods">← back</a></p>
 
 <div class="card">
   <h2>Per 100g</h2>

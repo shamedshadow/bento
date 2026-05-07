@@ -1,18 +1,21 @@
+{% import "_icons.html" as icons %}
 <div class="date-nav">
   <a href="/?day={{ prev_day_iso }}"
      hx-get="/?day={{ prev_day_iso }}"
      hx-target="#dashboard-body"
      hx-swap="innerHTML"
-     hx-push-url="true">← prev</a>
+     hx-push-url="true"
+     aria-label="Previous day">{{ icons.icon('chevron-left') }}</a>
   <strong>{% if is_today %}Today{% else %}{{ day.strftime('%a, %b %d') }}{% endif %}</strong>
   {% if not is_today %}
-    <a href="/" hx-get="/" hx-target="#dashboard-body" hx-swap="innerHTML" hx-push-url="true">today</a>
+    <a href="/" hx-get="/" hx-target="#dashboard-body" hx-swap="innerHTML" hx-push-url="true" style="font-size:0.85rem;">today</a>
   {% endif %}
   <a href="/?day={{ next_day_iso }}"
      hx-get="/?day={{ next_day_iso }}"
      hx-target="#dashboard-body"
      hx-swap="innerHTML"
-     hx-push-url="true">next →</a>
+     hx-push-url="true"
+     aria-label="Next day">{{ icons.icon('chevron-right') }}</a>
 </div>
 
 <div class="headline">
@@ -77,8 +80,10 @@
 {% endfor %}
 
 {% if ns.empty %}
-  <div class="card">
-    <p class="muted">No entries for this day{% if is_today %} yet{% endif %}.</p>
+  <div class="card empty-state">
+    {{ icons.icon('inbox', 'icon icon-xl') }}
+    <p>Nothing logged{% if is_today %} yet{% endif %}.</p>
+    {% if is_today %}<p class="hint">Tap the + below to scan, search, or pick a recent.</p>{% endif %}
   </div>
 {% endif %}
 

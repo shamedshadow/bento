@@ -1,10 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Settings — Bento{% endblock %}
 {% block content %}
-<div class="top-bar">
-  <span class="brand">Settings</span>
-  <a href="/">← back</a>
-</div>
+{% with back_href="/", title="Settings" %}{% include "_top_bar.html" %}{% endwith %}
 
 {% if saved == 'profile' %}
   <div class="flash success">

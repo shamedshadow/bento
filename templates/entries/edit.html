@@ -1,11 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Edit entry — Bento{% endblock %}
 {% block content %}
+{% with back_href="/", title="Edit entry" %}{% include "_top_bar.html" %}{% endwith %}
 <h1>Edit entry</h1>
-<p class="muted">
-  {{ food.name }}{% if food.brand %} — {{ food.brand }}{% endif %} ·
-  <a href="/today">← back to today</a>
-</p>
+<p class="muted">{{ food.name }}{% if food.brand %} — {{ food.brand }}{% endif %}</p>
 
 <form method="post" action="/entries/{{ entry.id }}/edit" class="card">
   <label>Amount (grams)

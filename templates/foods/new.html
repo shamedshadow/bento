@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block title %}New custom food — Bento{% endblock %}
 {% block content %}
+{% with back_href="/foods", title="New food" %}{% include "_top_bar.html" %}{% endwith %}
 <h1>New custom food</h1>
-<p class="muted"><a href="/foods">← back</a></p>
 
 <form method="post" action="/foods/new" class="card">
   <label>Name
