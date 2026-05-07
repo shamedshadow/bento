@@ -36,7 +36,7 @@
                 <div style="flex:1;min-width:0;">
                   <strong>{{ food.name }}</strong>{% if food.brand %} <span class="muted">— {{ food.brand }}</span>{% endif %}<br>
                   <span class="muted" style="font-size:0.9rem;">
-                    {{ entry.amount_g|round(0) }}g
+                    {{ '%g'|format(entry.amount_g) }}g
                     {% if n.calories is not none %} · {{ n.calories|round(0) }} kcal{% endif %}
                     {% if n.net_carbs is not none %} · {{ n.net_carbs|round(1) }}g net carbs{% endif %}
                     {% if n.protein is not none %} · {{ n.protein|round(1) }}g protein{% endif %}
@@ -55,6 +55,15 @@
           </li>
         {% endfor %}
       </ul>
+      <details style="margin-top:0.5rem;">
+        <summary class="muted" style="cursor:pointer;font-size:0.9rem;">Save this {{ meal_labels[meal]|lower }} as a saved meal</summary>
+        <form method="post" action="/saved-meals/from-day" style="display:flex;gap:0.4rem;margin-top:0.5rem;">
+          <input type="hidden" name="day" value="{{ day.isoformat() }}">
+          <input type="hidden" name="meal_type" value="{{ meal or '' }}">
+          <input type="text" name="name" placeholder="Name (e.g. Standard {{ meal_labels[meal]|lower }})" required style="flex:1;">
+          <button type="submit" class="secondary" style="margin:0;font-size:0.85rem;padding:0.4rem 0.7rem;">Save</button>
+        </form>
+      </details>
     </div>
   {% endif %}
 {% endfor %}

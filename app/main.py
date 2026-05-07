@@ -8,7 +8,7 @@ from app.auth.context import AuthContextMiddleware
 from app.auth.setup_gate import SetupGateMiddleware
 from app.config import settings
 from app.db import engine
-from app.routers import admin, auth_pages, entries, foods, pages
+from app.routers import admin, auth_pages, entries, foods, pages, saved_meals
 
 
 @asynccontextmanager
@@ -34,6 +34,7 @@ app.include_router(auth_pages.router)
 app.include_router(admin.router)
 app.include_router(foods.router)
 app.include_router(entries.router)
+app.include_router(saved_meals.router)
 app.include_router(pages.router)
 
 photos_dir = Path(settings.photos_dir)

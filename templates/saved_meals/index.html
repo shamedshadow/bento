@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Saved meals — Bento{% endblock %}
+{% block content %}
+<h1>Saved meals</h1>
+<p class="muted"><a href="/">← back</a></p>
+
+<div class="card">
+  <p><a class="btn" href="/saved-meals/new">Create a saved meal</a></p>
+  <p class="muted">Or save today's meals from the <a href="/today">log view</a>.</p>
+</div>
+
+{% if meals %}
+  <ul class="user-list">
+    {% for m in meals %}
+      <li>
+        <div style="padding:0.85rem 1rem;background:#fff;border:1px solid #e6e3dc;border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;gap:0.5rem;align-items:flex-start;">
+            <div style="flex:1;min-width:0;">
+              <a href="/saved-meals/{{ m.id }}"><strong>{{ m.name }}</strong></a>
+              {% if m.default_meal_type %}<span class="muted"> · {{ m.default_meal_type }}</span>{% endif %}<br>
+              <span class="muted">{{ m.items|length }} item{{ '' if m.items|length == 1 else 's' }}</span>
+            </div>
+            <form method="post" action="/saved-meals/{{ m.id }}/log" style="margin:0;">
+              <button type="submit" style="margin:0;font-size:0.85rem;padding:0.3rem 0.6rem;">Log</button>
+            </form>
+          </div>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="card">
+    <p class="muted">No saved meals yet.</p>
+  </div>
+{% endif %}
+{% endblock %}

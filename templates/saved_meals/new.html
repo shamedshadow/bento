@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}New saved meal — Bento{% endblock %}
+{% block content %}
+<h1>New saved meal</h1>
+<p class="muted"><a href="/saved-meals">← back</a></p>
+
+<form method="post" action="/saved-meals" class="card">
+  <label>Name
+    <input type="text" name="name" required autofocus placeholder="e.g. Standard breakfast">
+  </label>
+  <label>Default meal type <span class="muted">(optional)</span>
+    <select name="default_meal_type">
+      <option value="">— none —</option>
+      {% for m in meal_types %}
+        <option value="{{ m }}">{{ m|capitalize }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button type="submit">Create</button>
+  <p class="muted" style="margin-top:0.75rem;">You'll add items on the next page.</p>
+</form>
+{% endblock %}
