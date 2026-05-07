@@ -600,10 +600,12 @@ button:disabled, .btn:disabled {
   text-align: center;
 }
 
-/* --- Square icon button (Edit/Delete on entry rows, etc.) --- */
+/* --- Square icon button (Edit/Delete on entry rows, etc.) ---
+   Uses absolute positioning for the SVG so anchors and buttons render
+   identically (otherwise <a>'s inline baseline subtly offsets the icon). */
 .icon-btn {
-  display: grid;
-  place-items: center;
+  position: relative;
+  display: inline-block;
   width: 36px;
   height: 36px;
   min-height: 36px;
@@ -614,12 +616,20 @@ button:disabled, .btn:disabled {
   color: var(--text-muted);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  line-height: 0;
+  vertical-align: middle;
 }
 .icon-btn:hover { color: var(--text); border-color: var(--accent-dim); background: var(--surface-2); }
 .icon-btn.warn:hover { color: var(--warn-hi); border-color: var(--warn); }
 .icon-btn .icon,
-.icon-btn svg { display: block; width: 16px; height: 16px; }
+.icon-btn svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  display: block;
+}
 
 /* --- Row with action (e.g., quick-log button on Recents/Favorites) --- */
 .row-action {
