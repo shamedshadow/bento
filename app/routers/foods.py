@@ -55,7 +55,8 @@ async def api_search(
     db: AsyncSession = Depends(get_session),
     _: User = Depends(require_user),
 ):
-    rows = await nutrition.search_local(db, q)
+    rows = await nutrition.search_foods(db, q)
+    await db.commit()
     return {"results": [_serialize(f) for f in rows]}
 
 
@@ -114,7 +115,8 @@ async def foods_search_results(
     db: AsyncSession = Depends(get_session),
     user: User = Depends(require_user),
 ):
-    rows = await nutrition.search_local(db, q)
+    rows = await nutrition.search_foods(db, q)
+    await db.commit()
     return templates.TemplateResponse(
         request,
         "foods/_search_results.html",

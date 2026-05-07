@@ -13,15 +13,32 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.models import Food
 
 logger = logging.getLogger(__name__)
 
 OFF_BASE = "https://world.openfoodfacts.org/api/v2"
+USDA_BASE = "https://api.nal.usda.gov/fdc/v1"
 USER_AGENT = "Bento/1.0 (https://github.com/shamedshadow/bento)"
 CACHE_TTL = timedelta(days=30)
-# Be polite — cap concurrent OFF requests across the process at 2.
+# Be polite — cap concurrent external requests across the process at 2.
 _OFF_SEMAPHORE = asyncio.Semaphore(2)
+_USDA_SEMAPHORE = asyncio.Semaphore(2)
+# Local-search hit count below which we top up with USDA (per scope F2).
+USDA_TOPUP_THRESHOLD = 5
+# USDA nutrient IDs (FDC standard). Energy has multiple — Foundation entries
+# tend to use 2047/2048 (Atwater factors); SR Legacy uses 1008. Try them in
+# fallback order. Sugar similarly varies between 2000 and 1063.
+_USDA_NUTRIENT_FALLBACKS = {
+    "calories_per_100g": (1008, 2047, 2048),
+    "carbs_per_100g": (1005,),
+    "fiber_per_100g": (1079,),
+    "protein_per_100g": (1003,),
+    "fat_per_100g": (1004,),
+    "sugar_per_100g": (2000, 1063),
+    "sodium_per_100g": (1093,),  # mg per 100g — convert to g below
+}
 
 
 def _now() -> datetime:
@@ -139,6 +156,100 @@ async def search_local(
         )
     ).scalars().all()
     return list(rows)
+
+
+async def _fetch_usda(query: str, limit: int = 10) -> list[dict]:
+    """Hit USDA FDC search. Filters to Foundation + SR Legacy (per-100g values)."""
+    if not settings.usda_api_key:
+        return []
+    params = {
+        "api_key": settings.usda_api_key,
+        "query": query,
+        "pageSize": str(limit),
+        "dataType": "Foundation,SR Legacy",
+    }
+    async with _USDA_SEMAPHORE:
+        try:
+            async with httpx.AsyncClient(
+                timeout=10.0, headers={"User-Agent": USER_AGENT}
+            ) as client:
+                resp = await client.get(f"{USDA_BASE}/foods/search", params=params)
+                resp.raise_for_status()
+                data = resp.json()
+        except httpx.HTTPError as e:
+            logger.warning("USDA search failed for %r: %s", query, e)
+            return []
+    return data.get("foods", []) or []
+
+
+def _map_usda_food(hit: dict) -> dict:
+    nutrients = {
+        n.get("nutrientId"): n.get("value")
+        for n in hit.get("foodNutrients") or []
+        if n.get("nutrientId") is not None
+    }
+    fields: dict[str, Optional[float]] = {}
+    for key, ids in _USDA_NUTRIENT_FALLBACKS.items():
+        value = None
+        for nid in ids:
+            v = _coerce_float(nutrients.get(nid))
+            if v is not None:
+                value = v
+                break
+        fields[key] = value
+    # USDA reports sodium in mg per 100g; we store grams per 100g.
+    if fields.get("sodium_per_100g") is not None:
+        fields["sodium_per_100g"] = fields["sodium_per_100g"] / 1000.0
+    return {
+        "source": "usda",
+        "source_id": str(hit["fdcId"]),
+        "barcode": None,
+        "name": (hit.get("description") or "Unknown").strip(),
+        "brand": (hit.get("brandOwner") or "").strip() or None,
+        "default_serving_g": None,
+        "default_serving_label": None,
+        **fields,
+    }
+
+
+async def search_foods(
+    session: AsyncSession, q: str, limit: int = 30
+) -> list[Food]:
+    """Local cache first; if fewer than USDA_TOPUP_THRESHOLD hits and a USDA key
+    is configured, top up from USDA and cache the new rows.
+    """
+    local = await search_local(session, q, limit)
+    if len(local) >= USDA_TOPUP_THRESHOLD or not settings.usda_api_key or not q.strip():
+        return local
+
+    hits = await _fetch_usda(q.strip(), limit=limit - len(local))
+    if not hits:
+        return local
+
+    seen_usda_ids = {f.source_id for f in local if f.source == "usda"}
+    appended: list[Food] = []
+    for hit in hits:
+        fdc_id = str(hit.get("fdcId") or "")
+        if not fdc_id or fdc_id in seen_usda_ids:
+            continue
+        # Another concurrent request might have already cached this row.
+        existing = (
+            await session.execute(
+                select(Food).where(
+                    Food.source == "usda", Food.source_id == fdc_id
+                )
+            )
+        ).scalar_one_or_none()
+        if existing is not None:
+            seen_usda_ids.add(fdc_id)
+            appended.append(existing)
+            continue
+        food = Food(**_map_usda_food(hit), last_synced_at=_now())
+        session.add(food)
+        await session.flush()
+        seen_usda_ids.add(fdc_id)
+        appended.append(food)
+    return local + appended
 
 
 async def create_custom_food(

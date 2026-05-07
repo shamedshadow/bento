@@ -4,7 +4,9 @@
       {% for f in results %}
         <li>
           <a href="/foods/{{ f.id }}">
-            <strong>{{ f.name }}</strong>{% if f.brand %} — <span class="muted">{{ f.brand }}</span>{% endif %}<br>
+            <strong>{{ f.name }}</strong>{% if f.brand %} — <span class="muted">{{ f.brand }}</span>{% endif %}
+            {% if f.source == 'usda' %}<span class="muted" style="font-size:0.75em;">[USDA]</span>{% elif f.source == 'openfoodfacts' %}<span class="muted" style="font-size:0.75em;">[OFF]</span>{% endif %}
+            <br>
             <span class="muted">
               {% if f.calories_per_100g is not none %}{{ f.calories_per_100g|round(0) }} kcal{% endif %}
               {% if f.carbs_per_100g is not none %} · {{ f.carbs_per_100g|round(1) }}g carbs{% endif %}
@@ -15,6 +17,6 @@
       {% endfor %}
     </ul>
   {% else %}
-    <p class="muted" style="margin-top:0.75rem;">No matches in your foods yet.</p>
+    <p class="muted" style="margin-top:0.75rem;">No matches.</p>
   {% endif %}
 {% endif %}

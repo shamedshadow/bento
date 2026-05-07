@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     cookie_secure: bool = Field(
         default=False, validation_alias="BENTO_COOKIE_SECURE"
     )
+    usda_api_key: str | None = Field(
+        default=None, validation_alias="USDA_API_KEY"
+    )
 
 
 settings = Settings()
