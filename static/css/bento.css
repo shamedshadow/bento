@@ -1,0 +1,86 @@
+/* Bento — minimal styles for F1 auth screens. Will grow with F4 (daily log view). */
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  margin: 0;
+  background: #fafaf7;
+  color: #2a2a28;
+  line-height: 1.5;
+}
+
+main {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem;
+}
+
+h1 { font-size: 1.5rem; margin: 0 0 1rem; }
+h2 { font-size: 1.15rem; margin: 1.5rem 0 0.5rem; }
+
+.card {
+  background: #fff;
+  border: 1px solid #e6e3dc;
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+label { display: block; margin-top: 0.75rem; font-size: 0.9rem; color: #555; }
+input, select {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  margin-top: 0.25rem;
+  font-size: 1rem;
+  border: 1px solid #d4d0c8;
+  border-radius: 6px;
+  background: #fff;
+}
+input[inputmode="numeric"] {
+  font-size: 1.5rem;
+  letter-spacing: 0.4em;
+  text-align: center;
+}
+
+button, .btn {
+  display: inline-block;
+  padding: 0.6rem 1rem;
+  margin-top: 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border: 0;
+  border-radius: 6px;
+  background: #2a2a28;
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+}
+button.secondary, .btn.secondary { background: #e6e3dc; color: #2a2a28; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.user-list { list-style: none; padding: 0; margin: 0; }
+.user-list li { margin-bottom: 0.5rem; }
+.user-list a {
+  display: block;
+  padding: 0.85rem 1rem;
+  background: #fff;
+  border: 1px solid #e6e3dc;
+  border-radius: 8px;
+  color: #2a2a28;
+  text-decoration: none;
+}
+
+.error { color: #9a3a1c; margin-top: 0.5rem; font-size: 0.9rem; }
+.muted { color: #777; font-size: 0.9rem; }
+
+.magic-link-display {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+  word-break: break-all;
+  background: #f3f1ec;
+  border: 1px solid #e6e3dc;
+  border-radius: 6px;
+  padding: 0.75rem;
+}

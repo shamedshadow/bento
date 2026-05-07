@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Sign in — Bento{% endblock %}
+{% block content %}
+<h1>Who's eating?</h1>
+
+{% if users %}
+  <ul class="user-list">
+    {% for u in users %}
+      <li><a href="/auth/login/{{ u.id }}">{{ u.name }}</a></li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="card">
+    <p class="muted">No users have set a PIN yet. Ask your admin for a magic link.</p>
+  </div>
+{% endif %}
+{% endblock %}

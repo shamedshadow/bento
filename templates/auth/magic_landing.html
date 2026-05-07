@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Set your PIN — Bento{% endblock %}
+{% block content %}
+<h1>Welcome, {{ user.name }}</h1>
+<p class="muted">Pick a PIN you'll use to sign in. 4–6 digits.</p>
+
+<form method="post" action="/auth/magic/{{ token }}" class="card">
+  <label>New PIN
+    <input type="password" name="pin" inputmode="numeric" pattern="[0-9]{4,6}"
+           minlength="4" maxlength="6" required autofocus autocomplete="new-password">
+  </label>
+  <label>Confirm PIN
+    <input type="password" name="pin_confirm" inputmode="numeric" pattern="[0-9]{4,6}"
+           minlength="4" maxlength="6" required autocomplete="new-password">
+  </label>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <button type="submit">Set PIN and sign in</button>
+</form>
+{% endblock %}

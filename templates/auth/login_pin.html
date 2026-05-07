@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Enter PIN — Bento{% endblock %}
+{% block content %}
+<h1>Hi, {{ user.name }}</h1>
+<p class="muted"><a href="/auth/login">Not you?</a></p>
+
+<form method="post" action="/auth/login/{{ user.id }}" class="card">
+  <label>PIN
+    <input type="password" name="pin" inputmode="numeric" pattern="[0-9]{4,6}"
+           minlength="4" maxlength="6" required autofocus autocomplete="off"
+           {% if locked_for > 0 %}disabled{% endif %}>
+  </label>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  {% if locked_for > 0 %}
+    <p class="muted">Locked for {{ locked_for }}s.</p>
+  {% endif %}
+  <button type="submit" {% if locked_for > 0 %}disabled{% endif %}>Sign in</button>
+</form>
+{% endblock %}

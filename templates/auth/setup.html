@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Set up Bento{% endblock %}
+{% block content %}
+<h1>Welcome to Bento</h1>
+<p class="muted">Let's create the admin account.</p>
+
+<form method="post" action="/setup" class="card">
+  <label>Your name
+    <input type="text" name="name" required autocomplete="name" autofocus>
+  </label>
+  <label>Email
+    <input type="email" name="email" required autocomplete="email" inputmode="email">
+  </label>
+  <label>Primary metric
+    <select name="primary_metric" required>
+      {% for m in metrics %}
+        <option value="{{ m }}">{{ m.replace('_', ' ') }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Daily target (for your primary metric)
+    <input type="number" name="daily_target_primary" min="1" required>
+  </label>
+  <label>Choose a PIN (4–6 digits)
+    <input type="password" name="pin" inputmode="numeric" pattern="[0-9]{4,6}"
+           minlength="4" maxlength="6" required autocomplete="new-password">
+  </label>
+  <label>Confirm PIN
+    <input type="password" name="pin_confirm" inputmode="numeric" pattern="[0-9]{4,6}"
+           minlength="4" maxlength="6" required autocomplete="new-password">
+  </label>
+
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <button type="submit">Create admin account</button>
+</form>
+{% endblock %}

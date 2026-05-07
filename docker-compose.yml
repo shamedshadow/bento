@@ -1,0 +1,14 @@
+services:
+  bento:
+    build: .
+    container_name: bento
+    restart: unless-stopped
+    ports:
+      - "8081:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:////app/data/bento.db
+      - PHOTOS_DIR=/app/data/photos
+      # Set to true when serving over HTTPS (homelab usually is, via reverse proxy).
+      - BENTO_COOKIE_SECURE=true
