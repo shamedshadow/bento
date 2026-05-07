@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -38,10 +38,14 @@ async def _build_dashboard_context(
     is_today = target == today
 
     pairs = await log_svc.list_entries_with_foods(db, user, target)
-    grouped: dict[Optional[str], list[tuple[Entry, Food, dict]]] = {}
+    tz = log_svc._user_tz(user)
+    grouped: dict[Optional[str], list[tuple[Entry, Food, dict, str]]] = {}
     for entry, food in pairs:
+        # %-I/%-l (no leading-zero hour) isn't portable to Windows; strip after.
+        local_dt = entry.logged_at.replace(tzinfo=timezone.utc).astimezone(tz)
+        local_time = local_dt.strftime("%I:%M %p").lstrip("0")
         grouped.setdefault(entry.meal_type, []).append(
-            (entry, food, log_svc.compute_nutrients(food, entry.amount_g))
+            (entry, food, log_svc.compute_nutrients(food, entry.amount_g), local_time)
         )
     totals = log_svc.daily_totals(pairs)
     primary_total = totals.get(_METRIC_KEY.get(user.primary_metric, "calories"))

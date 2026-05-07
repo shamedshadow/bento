@@ -264,4 +264,27 @@ async def delete_entry_submit(
         raise HTTPException(404)
     await logsvc.delete_entry(db, entry)
     await db.commit()
-    return RedirectResponse("/today", status_code=303)
+    return RedirectResponse("/", status_code=303)
+
+
+@router.post("/entries/{entry_id}/duplicate")
+async def duplicate_entry(
+    entry_id: int,
+    db: AsyncSession = Depends(get_session),
+    user: User = Depends(require_user),
+):
+    """Log the same food + amount + meal at the current time. One-tap repeat."""
+    entry = await db.get(Entry, entry_id)
+    if entry is None or entry.user_id != user.id:
+        raise HTTPException(404)
+    await logsvc.create_entry(
+        db,
+        user_id=user.id,
+        food_id=entry.food_id,
+        amount_g=entry.amount_g,
+        meal_type=entry.meal_type,
+        notes=None,
+        logged_at=None,
+    )
+    await db.commit()
+    return RedirectResponse("/", status_code=303)

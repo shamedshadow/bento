@@ -7,6 +7,7 @@ from app.auth.deps import require_user
 from app.db import get_session
 from app.models import Food, User
 from app.services import favorites as fav_svc
+from app.services import foods as foods_svc
 from app.services import logging as log_svc
 from app.services import nutrition
 
@@ -196,10 +197,104 @@ async def foods_detail(
     if food is None:
         raise HTTPException(status_code=404)
     favorited = await fav_svc.is_favorited(db, user.id, food.id)
+    # Build a Mealie back-link if this is a Mealie-sourced food.
+    mealie_recipe_url: str | None = None
+    if food.source == "mealie" and food.source_id:
+        from app.services import mealie as mealie_svc
+        cfg = await mealie_svc.get_or_create_settings(db)
+        if cfg.url:
+            mealie_recipe_url = f"{cfg.url.rstrip('/')}/recipe/{food.source_id}"
+        await db.commit()
     return templates.TemplateResponse(
         request,
         "foods/detail.html",
-        {"food": food, "current_user": user, "favorited": favorited},
+        {
+            "food": food,
+            "current_user": user,
+            "favorited": favorited,
+            "mealie_recipe_url": mealie_recipe_url,
+        },
+    )
+
+
+@router.get("/foods/{food_id}/edit")
+async def foods_edit_form(
+    food_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_session),
+    user: User = Depends(require_user),
+):
+    food = await db.get(Food, food_id)
+    if food is None:
+        raise HTTPException(404)
+    if food.source != "custom":
+        return RedirectResponse(f"/foods/{food.id}", status_code=303)
+    return templates.TemplateResponse(
+        request,
+        "foods/edit.html",
+        {"food": food, "current_user": user, "error": None},
+    )
+
+
+@router.post("/foods/{food_id}/edit")
+async def foods_edit_submit(
+    food_id: int,
+    request: Request,
+    name: str = Form(...),
+    calories_per_100g: float = Form(...),
+    carbs_per_100g: float = Form(...),
+    brand: str | None = Form(None),
+    default_serving_g: float | None = Form(None),
+    default_serving_label: str | None = Form(None),
+    fiber_per_100g: float | None = Form(None),
+    protein_per_100g: float | None = Form(None),
+    fat_per_100g: float | None = Form(None),
+    sugar_per_100g: float | None = Form(None),
+    sodium_per_100g: float | None = Form(None),
+    db: AsyncSession = Depends(get_session),
+    user: User = Depends(require_user),
+):
+    food = await db.get(Food, food_id)
+    if food is None:
+        raise HTTPException(404)
+    if food.source != "custom":
+        return RedirectResponse(f"/foods/{food.id}", status_code=303)
+    await foods_svc.update_custom(
+        db,
+        food,
+        name=name,
+        brand=brand,
+        default_serving_g=default_serving_g,
+        default_serving_label=default_serving_label,
+        calories_per_100g=calories_per_100g,
+        carbs_per_100g=carbs_per_100g,
+        fiber_per_100g=fiber_per_100g,
+        protein_per_100g=protein_per_100g,
+        fat_per_100g=fat_per_100g,
+        sugar_per_100g=sugar_per_100g,
+        sodium_per_100g=sodium_per_100g,
+    )
+    await db.commit()
+    return RedirectResponse(f"/foods/{food.id}", status_code=303)
+
+
+@router.post("/foods/{food_id}/delete")
+async def foods_delete_submit(
+    food_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_session),
+    user: User = Depends(require_user),
+):
+    food = await db.get(Food, food_id)
+    if food is None:
+        raise HTTPException(404)
+    ok, msg = await foods_svc.delete_custom(db, food)
+    await db.commit()
+    if ok:
+        return RedirectResponse("/foods", status_code=303)
+    from urllib.parse import quote
+    return RedirectResponse(
+        f"/foods/{food.id}?delete_error={quote(msg)}", status_code=303
     )
 
 

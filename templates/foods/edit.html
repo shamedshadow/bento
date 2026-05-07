@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ food.name }} — Bento{% endblock %}
+{% block content %}
+{% with back_href='/foods/' ~ food.id, title="Edit food" %}{% include "_top_bar.html" %}{% endwith %}
+<h1>Edit {{ food.name }}</h1>
+
+<form method="post" action="/foods/{{ food.id }}/edit" class="card">
+  <label>Name
+    <input type="text" name="name" value="{{ food.name }}" required>
+  </label>
+  <label>Brand <span class="muted">(optional)</span>
+    <input type="text" name="brand" value="{{ food.brand or '' }}">
+  </label>
+
+  <h2>Per 100g</h2>
+  <label>Calories (kcal) — required
+    <input type="number" name="calories_per_100g" step="0.1" min="0" value="{{ food.calories_per_100g if food.calories_per_100g is not none else '' }}" required>
+  </label>
+  <label>Carbs (g) — required
+    <input type="number" name="carbs_per_100g" step="0.1" min="0" value="{{ food.carbs_per_100g if food.carbs_per_100g is not none else '' }}" required>
+  </label>
+  <label>Fiber (g) <span class="muted">(optional)</span>
+    <input type="number" name="fiber_per_100g" step="0.1" min="0" value="{{ food.fiber_per_100g if food.fiber_per_100g is not none else '' }}">
+  </label>
+  <label>Protein (g) <span class="muted">(optional)</span>
+    <input type="number" name="protein_per_100g" step="0.1" min="0" value="{{ food.protein_per_100g if food.protein_per_100g is not none else '' }}">
+  </label>
+  <label>Fat (g) <span class="muted">(optional)</span>
+    <input type="number" name="fat_per_100g" step="0.1" min="0" value="{{ food.fat_per_100g if food.fat_per_100g is not none else '' }}">
+  </label>
+  <label>Sugar (g) <span class="muted">(optional)</span>
+    <input type="number" name="sugar_per_100g" step="0.1" min="0" value="{{ food.sugar_per_100g if food.sugar_per_100g is not none else '' }}">
+  </label>
+  <label>Sodium (g) <span class="muted">(optional)</span>
+    <input type="number" name="sodium_per_100g" step="0.001" min="0" value="{{ food.sodium_per_100g if food.sodium_per_100g is not none else '' }}">
+  </label>
+
+  <h2>Default serving <span class="muted">(optional)</span></h2>
+  <label>Grams per serving
+    <input type="number" name="default_serving_g" step="0.1" min="0" value="{{ food.default_serving_g if food.default_serving_g is not none else '' }}">
+  </label>
+  <label>Label (e.g., "1 cup")
+    <input type="text" name="default_serving_label" value="{{ food.default_serving_label or '' }}">
+  </label>
+
+  <button type="submit">Save changes</button>
+</form>
+
+<form method="post" action="/foods/{{ food.id }}/delete" class="card" style="margin-top:0.75rem;"
+      onsubmit="return confirm('Delete this custom food? Refused if any logged entries or saved meals reference it.')">
+  <button type="submit" class="btn-danger">Delete this food</button>
+</form>
+{% endblock %}

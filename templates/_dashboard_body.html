@@ -40,14 +40,14 @@
     <div class="card">
       <h2 style="margin-top:0;">{{ meal_labels[meal] }}</h2>
       <ul class="user-list">
-        {% for entry, food, n in grouped[meal] %}
+        {% for entry, food, n, local_time in grouped[meal] %}
           <li>
             <div style="padding:0.85rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;">
               <div style="display:flex;justify-content:space-between;gap:0.5rem;">
                 <div style="flex:1;min-width:0;">
                   <strong>{{ food.name }}</strong>{% if food.brand %} <span class="muted">— {{ food.brand }}</span>{% endif %}<br>
                   <span class="muted" style="font-size:0.9rem;">
-                    {{ '%g'|format(entry.amount_g) }}g
+                    {{ local_time }} · {{ '%g'|format(entry.amount_g) }}g
                     {% if n.calories is not none %} · {{ n.calories|round(0)|int }} kcal{% endif %}
                     {% if n.net_carbs is not none %} · {{ '%.1f'|format(n.net_carbs) }}g net carbs{% endif %}
                     {% if n.protein is not none %} · {{ '%.1f'|format(n.protein) }}g protein{% endif %}
@@ -55,6 +55,11 @@
                   {% if entry.notes %}<p class="muted" style="margin:0.25rem 0 0;font-size:0.85rem;">{{ entry.notes }}</p>{% endif %}
                 </div>
                 <div style="display:flex;gap:0.4rem;align-items:flex-start;">
+                  <form method="post" action="/entries/{{ entry.id }}/duplicate" style="margin:0;">
+                    <button type="submit" class="icon-btn" aria-label="Log again now">
+                      {{ icons.icon('repeat', 'icon icon-sm') }}
+                    </button>
+                  </form>
                   <a href="/entries/{{ entry.id }}/edit" class="icon-btn" aria-label="Edit">
                     {{ icons.icon('edit', 'icon icon-sm') }}
                   </a>
