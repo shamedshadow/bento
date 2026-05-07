@@ -5,6 +5,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from app.auth import magic_links, pins, sessions
 from app.auth.deps import get_current_user
@@ -143,8 +144,106 @@ async def login_picker(
         )
     ).scalars().all()
     return templates.TemplateResponse(
-        request, "auth/login.html", {"users": users}
+        request,
+        "auth/login.html",
+        {"users": users, "open_signup": settings.open_signup},
     )
+
+
+# ----- Self-service signup (gated by BENTO_OPEN_SIGNUP) ----------------------
+
+
+@router.get("/auth/signup")
+async def signup_form(
+    request: Request,
+    db: AsyncSession = Depends(get_session),
+):
+    if not settings.open_signup:
+        raise HTTPException(404)
+    if getattr(request.state, "current_user", None) is not None:
+        return RedirectResponse("/", status_code=303)
+    return templates.TemplateResponse(
+        request,
+        "auth/signup.html",
+        {"metrics": PRIMARY_METRICS, "error": None, "form": {}},
+    )
+
+
+@router.post("/auth/signup")
+async def signup_submit(
+    request: Request,
+    name: str = Form(...),
+    email: str = Form(...),
+    primary_metric: str = Form(...),
+    daily_target_primary: int = Form(...),
+    timezone_name: str = Form("America/New_York"),
+    pin: str = Form(...),
+    pin_confirm: str = Form(...),
+    db: AsyncSession = Depends(get_session),
+):
+    if not settings.open_signup:
+        raise HTTPException(404)
+
+    form = {
+        "name": name, "email": email,
+        "primary_metric": primary_metric,
+        "daily_target_primary": daily_target_primary,
+        "timezone": timezone_name,
+    }
+    error = _validate_signup(name, email, primary_metric, daily_target_primary, timezone_name, pin, pin_confirm)
+    if error:
+        return templates.TemplateResponse(
+            request,
+            "auth/signup.html",
+            {"metrics": PRIMARY_METRICS, "error": error, "form": form},
+            status_code=400,
+        )
+
+    email_norm = email.strip().lower()
+    existing = (
+        await db.execute(select(User).where(User.email == email_norm))
+    ).scalar_one_or_none()
+    if existing is not None:
+        return templates.TemplateResponse(
+            request,
+            "auth/signup.html",
+            {"metrics": PRIMARY_METRICS, "error": "Email already in use.", "form": form},
+            status_code=400,
+        )
+
+    user = User(
+        email=email_norm,
+        name=name.strip(),
+        is_admin=False,
+        is_active=True,
+        primary_metric=primary_metric,
+        daily_target_primary=int(daily_target_primary),
+        timezone=timezone_name.strip(),
+        pin_hash=pins.hash_pin(pin),
+        pin_set_at=datetime.now(timezone.utc).replace(tzinfo=None),
+    )
+    db.add(user)
+    await db.flush()
+
+    sess = await sessions.create_session(db, user)
+    await db.commit()
+
+    response = RedirectResponse("/", status_code=303)
+    _set_session_cookie(response, sess.token)
+    return response
+
+
+def _validate_signup(
+    name: str, email: str, metric: str, target: int, tz: str, pin: str, pin_confirm: str
+) -> str | None:
+    base = _validate_setup(name, email, metric, target, pin, pin_confirm)
+    if base:
+        return base
+    try:
+        ZoneInfo((tz or "").strip())
+    except (ZoneInfoNotFoundError, ValueError):
+        return "Invalid timezone (use an IANA name like America/New_York)."
+    return None
 
 
 @router.get("/auth/login/{user_id}")

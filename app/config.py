@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     usda_api_key: str | None = Field(
         default=None, validation_alias="USDA_API_KEY"
     )
+    open_signup: bool = Field(
+        default=False, validation_alias="BENTO_OPEN_SIGNUP"
+    )
 
 
 settings = Settings()

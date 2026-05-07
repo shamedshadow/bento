@@ -11,7 +11,13 @@
   </ul>
 {% else %}
   <div class="card">
-    <p class="muted">No users have set a PIN yet. Ask your admin for a magic link.</p>
+    <p class="muted">No users have set a PIN yet. Ask your admin for a magic link{% if open_signup %} or sign up below{% endif %}.</p>
   </div>
+{% endif %}
+
+{% if open_signup %}
+  <p class="muted" style="margin-top:1rem;text-align:center;">
+    Don't have an account? <a href="/auth/signup">Sign up</a>.
+  </p>
 {% endif %}
 {% endblock %}

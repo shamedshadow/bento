@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Sign up — Bento{% endblock %}
+{% block content %}
+<h1>Create your account</h1>
+<p class="muted">Pick the metric you care most about — you can change it later.</p>
+
+<form method="post" action="/auth/signup" class="card">
+  <label>Your name
+    <input type="text" name="name" value="{{ form.name or '' }}" required autofocus autocomplete="name">
+  </label>
+  <label>Email
+    <input type="email" name="email" value="{{ form.email or '' }}" required autocomplete="email" inputmode="email">
+  </label>
+  <label>Primary metric
+    <select name="primary_metric" required>
+      {% for m in metrics %}
+        <option value="{{ m }}" {% if form.primary_metric == m %}selected{% endif %}>{{ m.replace('_', ' ') }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Daily target
+    <input type="number" name="daily_target_primary" min="1" value="{{ form.daily_target_primary or '' }}" required>
+  </label>
+  <label>Timezone <span class="muted" style="font-weight:400;font-size:0.85rem;">(IANA name)</span>
+    <input type="text" name="timezone_name" value="{{ form.timezone or 'America/New_York' }}" required>
+  </label>
+  <label>Choose a PIN (4–6 digits)
+    <input type="password" name="pin" inputmode="numeric" pattern="[0-9]{4,6}"
+           minlength="4" maxlength="6" required autocomplete="new-password">
+  </label>
+  <label>Confirm PIN
+    <input type="password" name="pin_confirm" inputmode="numeric" pattern="[0-9]{4,6}"
+           minlength="4" maxlength="6" required autocomplete="new-password">
+  </label>
+
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <button type="submit">Create account</button>
+</form>
+
+<p class="muted" style="margin-top:0.75rem;text-align:center;">
+  Already have an account? <a href="/auth/login">Sign in</a>.
+</p>
+{% endblock %}

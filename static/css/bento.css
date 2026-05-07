@@ -618,6 +618,10 @@ button:disabled, .btn:disabled {
 }
 .icon-btn:hover { color: var(--text); border-color: var(--accent-dim); background: var(--surface-2); }
 .icon-btn.warn:hover { color: var(--warn-hi); border-color: var(--warn); }
+/* Force SVG to behave as a block child so baseline/inline rendering doesn't
+   knock it out of the 36×36 button box. */
+.icon-btn .icon,
+.icon-btn svg { display: block; }
 
 /* --- Row with action (e.g., quick-log button on Recents/Favorites) --- */
 .row-action {
