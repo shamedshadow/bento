@@ -12,6 +12,7 @@ from app.routers import (
     admin,
     auth_pages,
     entries,
+    export,
     foods,
     pages,
     saved_meals,
@@ -52,6 +53,7 @@ app.include_router(entries.router)
 app.include_router(saved_meals.router)
 app.include_router(trends.router)
 app.include_router(settings_routes.router)
+app.include_router(export.router)
 app.include_router(pages.router)
 
 photos_dir = Path(settings.photos_dir)

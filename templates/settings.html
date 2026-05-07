@@ -137,7 +137,19 @@
     <button type="submit" class="secondary">Sign out everywhere else</button>
   </form>
 
-  <p class="muted" style="margin:0.5rem 0;font-size:0.85rem;">CSV export lands with F9.</p>
+  <form method="get" action="/export" style="margin:0.5rem 0;">
+    <h3 style="margin:0 0 0.4rem;font-size:1rem;">Export your data</h3>
+    <p class="muted" style="font-size:0.85rem;margin:0 0 0.5rem;">CSV with one row per entry. Optional date range — leave both blank for everything.</p>
+    <div style="display:flex;gap:0.5rem;align-items:flex-end;flex-wrap:wrap;">
+      <label style="flex:1;min-width:130px;">From
+        <input type="date" name="start">
+      </label>
+      <label style="flex:1;min-width:130px;">To
+        <input type="date" name="end">
+      </label>
+      <button type="submit" class="secondary" style="margin:0;">Download CSV</button>
+    </div>
+  </form>
 
   <form method="post" action="/settings/delete-all-entries"
         onsubmit="return confirm('This deletes ALL your entries. Saved meals and favorites are kept. Continue?')">
