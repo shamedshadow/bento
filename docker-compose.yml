@@ -12,3 +12,8 @@ services:
       - PHOTOS_DIR=/app/data/photos
       # Set to true when serving over HTTPS (homelab usually is, via reverse proxy).
       - BENTO_COOKIE_SECURE=true
+      # These are forwarded from `.env` (compose auto-loads it for substitution).
+      # Empty defaults so missing values don't break startup.
+      - USDA_API_KEY=${USDA_API_KEY:-}
+      - BENTO_SESSION_SECRET=${BENTO_SESSION_SECRET:-}
+      - BENTO_OPEN_SIGNUP=${BENTO_OPEN_SIGNUP:-false}
