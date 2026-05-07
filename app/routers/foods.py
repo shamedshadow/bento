@@ -6,6 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.deps import require_user
 from app.db import get_session
 from app.models import Food, User
+from app.services import favorites as fav_svc
+from app.services import logging as log_svc
 from app.services import nutrition
 
 router = APIRouter()
@@ -193,6 +195,56 @@ async def foods_detail(
     food = await db.get(Food, food_id)
     if food is None:
         raise HTTPException(status_code=404)
+    favorited = await fav_svc.is_favorited(db, user.id, food.id)
     return templates.TemplateResponse(
-        request, "foods/detail.html", {"food": food, "current_user": user}
+        request,
+        "foods/detail.html",
+        {"food": food, "current_user": user, "favorited": favorited},
+    )
+
+
+@router.post("/foods/{food_id}/favorite-toggle")
+async def favorite_toggle(
+    food_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_session),
+    user: User = Depends(require_user),
+):
+    food = await db.get(Food, food_id)
+    if food is None:
+        raise HTTPException(status_code=404)
+    favorited = await fav_svc.toggle(db, user.id, food.id)
+    await db.commit()
+    return templates.TemplateResponse(
+        request,
+        "foods/_favorite_button.html",
+        {"food": food, "favorited": favorited},
+    )
+
+
+@router.get("/favorites")
+async def favorites_page(
+    request: Request,
+    db: AsyncSession = Depends(get_session),
+    user: User = Depends(require_user),
+):
+    foods = await fav_svc.list_for_user(db, user.id)
+    return templates.TemplateResponse(
+        request,
+        "foods/favorites.html",
+        {"current_user": user, "foods": foods},
+    )
+
+
+@router.get("/recents")
+async def recents_page(
+    request: Request,
+    db: AsyncSession = Depends(get_session),
+    user: User = Depends(require_user),
+):
+    pairs = await log_svc.list_recents(db, user)
+    return templates.TemplateResponse(
+        request,
+        "foods/recents.html",
+        {"current_user": user, "pairs": pairs},
     )

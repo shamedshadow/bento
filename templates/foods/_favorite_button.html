@@ -1,0 +1,10 @@
+<form id="favorite-form"
+      hx-post="/foods/{{ food.id }}/favorite-toggle"
+      hx-target="#favorite-form"
+      hx-swap="outerHTML"
+      style="display:inline;margin:0;">
+  <button type="submit" class="{% if not favorited %}secondary{% endif %}"
+          style="margin:0;" title="{% if favorited %}Unfavorite{% else %}Favorite{% endif %}">
+    {% if favorited %}★ Favorited{% else %}☆ Favorite{% endif %}
+  </button>
+</form>

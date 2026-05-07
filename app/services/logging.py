@@ -4,7 +4,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from typing import Optional
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import select
+from sqlalchemy import desc, func as sqlfunc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Entry, Food, User
@@ -120,6 +120,34 @@ def daily_totals(pairs: list[tuple[Entry, Food]]) -> dict:
                 total[k] += v
                 has_value[k] = True
     return {k: (total[k] if has_value[k] else None) for k in total}
+
+
+async def list_recents(
+    session: AsyncSession,
+    user: User,
+    *,
+    days: int = 14,
+    limit: int = 30,
+) -> list[tuple[Food, int]]:
+    """Foods the user has logged most often in the last `days`. Returns
+    (food, count) ordered by count desc, then most-recent logged_at desc.
+    """
+    cutoff = _now_utc_naive() - timedelta(days=days)
+    rows = (
+        await session.execute(
+            select(
+                Food,
+                sqlfunc.count(Entry.id).label("n"),
+                sqlfunc.max(Entry.logged_at).label("last"),
+            )
+            .join(Entry, Entry.food_id == Food.id)
+            .where(Entry.user_id == user.id, Entry.logged_at >= cutoff)
+            .group_by(Food.id)
+            .order_by(desc("n"), desc("last"))
+            .limit(limit)
+        )
+    ).all()
+    return [(r[0], r[1]) for r in rows]
 
 
 async def update_entry(

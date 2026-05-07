@@ -26,6 +26,9 @@
 </div>
 
 <div class="card">
-  <p><a class="btn" href="/foods/{{ food.id }}/log">Log this</a></p>
+  <p>
+    <a class="btn" href="/foods/{{ food.id }}/log">Log this</a>
+    {% include "foods/_favorite_button.html" %}
+  </p>
 </div>
 {% endblock %}

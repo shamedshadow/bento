@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Favorites — Bento{% endblock %}
+{% block content %}
+<h1>Favorites</h1>
+<p class="muted"><a href="/foods">← back</a></p>
+
+{% if foods %}
+  <ul class="user-list">
+    {% for f in foods %}
+      <li>
+        <a href="/foods/{{ f.id }}/log">
+          <strong>{{ f.name }}</strong>{% if f.brand %} <span class="muted">— {{ f.brand }}</span>{% endif %}<br>
+          <span class="muted">
+            {% if f.calories_per_100g is not none %}{{ f.calories_per_100g|round(0) }} kcal{% endif %}
+            {% if f.carbs_per_100g is not none %} · {{ f.carbs_per_100g|round(1) }}g carbs{% endif %}
+            · per 100g
+          </span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="card">
+    <p class="muted">No favorites yet. Star a food from its detail page to add it here.</p>
+  </div>
+{% endif %}
+{% endblock %}

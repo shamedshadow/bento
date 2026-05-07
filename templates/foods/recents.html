@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Recents — Bento{% endblock %}
+{% block content %}
+<h1>Recents</h1>
+<p class="muted">Last 14 days, ordered by frequency. <a href="/foods">← back</a></p>
+
+{% if pairs %}
+  <ul class="user-list">
+    {% for food, count in pairs %}
+      <li>
+        <a href="/foods/{{ food.id }}/log">
+          <strong>{{ food.name }}</strong>{% if food.brand %} <span class="muted">— {{ food.brand }}</span>{% endif %}<br>
+          <span class="muted">
+            logged {{ count }}× ·
+            {% if food.calories_per_100g is not none %}{{ food.calories_per_100g|round(0) }} kcal/100g{% endif %}
+          </span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="card">
+    <p class="muted">Nothing logged in the last 14 days. Log a food and it'll show up here.</p>
+  </div>
+{% endif %}
+{% endblock %}
