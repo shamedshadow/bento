@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Find a food — Bento{% endblock %}
+{% block content %}
+<h1>Find a food</h1>
+<p class="muted"><a href="/">← back</a></p>
+
+<div class="card">
+  <label>Search foods you've logged before
+    <input type="search" name="q" placeholder="e.g. chicken, yogurt"
+           hx-get="/foods/search-results"
+           hx-trigger="input changed delay:250ms, search"
+           hx-target="#search-results"
+           hx-swap="innerHTML"
+           autocomplete="off">
+  </label>
+  <div id="search-results"></div>
+</div>
+
+<div class="card">
+  <p><a class="btn" href="/foods/scan">Scan barcode</a></p>
+  <p class="muted">Scan a barcode to fetch its product info from Open Food Facts.</p>
+</div>
+
+<div class="card">
+  <p><a class="btn secondary" href="/foods/new">Create a custom food</a></p>
+  <p class="muted">For homemade or unbranded items.</p>
+</div>
+{% endblock %}

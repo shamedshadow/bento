@@ -5,8 +5,8 @@
 <p class="muted">Signed in as <strong>{{ current_user.name }}</strong>.</p>
 
 <div class="card">
-  <p>Auth is wired up. Logging features land next.</p>
-  <p class="muted">Primary metric: {{ current_user.primary_metric }} — daily target {{ current_user.daily_target_primary }}.</p>
+  <p class="muted">Primary metric: {{ current_user.primary_metric.replace('_',' ') }} — daily target {{ current_user.daily_target_primary }}.</p>
+  <p><a class="btn" href="/foods">Find a food</a></p>
 </div>
 
 <div class="card">

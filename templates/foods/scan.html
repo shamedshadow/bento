@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Scan barcode — Bento{% endblock %}
+{% block content %}
+<h1>Scan barcode</h1>
+<p class="muted"><a href="/foods">← back</a></p>
+
+<div class="card">
+  <div id="reader" style="width:100%; max-width:480px;"></div>
+  <p id="status" class="muted">Point at a barcode (UPC, EAN).</p>
+  <p><button type="button" class="secondary" id="cancel-btn">Cancel</button></p>
+</div>
+
+<div id="result"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+(function () {
+  const status = document.getElementById('status');
+  const result = document.getElementById('result');
+  const cancelBtn = document.getElementById('cancel-btn');
+  let scanner = null;
+
+  function showError(msg) {
+    status.textContent = msg;
+    status.className = 'error';
+  }
+
+  async function lookupBarcode(code) {
+    status.textContent = 'Looking up ' + code + '…';
+    status.className = 'muted';
+    try {
+      const r = await fetch('/api/foods/lookup?barcode=' + encodeURIComponent(code));
+      if (r.status === 404) {
+        result.innerHTML = `
+          <div class="card">
+            <h2>Not in Open Food Facts</h2>
+            <p class="muted">Barcode ${code} wasn't found. You can add it as a custom food.</p>
+            <p><a class="btn" href="/foods/new?barcode=${encodeURIComponent(code)}">Create custom food</a></p>
+          </div>`;
+        return;
+      }
+      if (!r.ok) {
+        showError('Lookup failed (' + r.status + ').');
+        return;
+      }
+      const food = await r.json();
+      window.location.href = '/foods/' + food.id;
+    } catch (e) {
+      showError('Network error: ' + e.message);
+    }
+  }
+
+  function stopScanner() {
+    if (scanner) {
+      scanner.stop().catch(() => {}).finally(() => { scanner = null; });
+    }
+  }
+
+  cancelBtn.addEventListener('click', () => {
+    stopScanner();
+    window.location.href = '/foods';
+  });
+
+  // Start scanner on load
+  window.addEventListener('DOMContentLoaded', () => {
+    scanner = new Html5Qrcode('reader');
+    const config = {
+      fps: 10,
+      qrbox: { width: 280, height: 160 },
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+      ],
+    };
+    scanner.start(
+      { facingMode: 'environment' },
+      config,
+      (decoded) => {
+        stopScanner();
+        lookupBarcode(decoded);
+      },
+      () => {} // ignore per-frame failures
+    ).catch((err) => {
+      showError('Camera error: ' + err);
+    });
+  });
+})();
+</script>
+{% endblock %}

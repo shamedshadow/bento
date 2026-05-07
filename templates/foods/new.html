@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}New custom food — Bento{% endblock %}
+{% block content %}
+<h1>New custom food</h1>
+<p class="muted"><a href="/foods">← back</a></p>
+
+<form method="post" action="/foods/new" class="card">
+  <label>Name
+    <input type="text" name="name" required autofocus>
+  </label>
+  <label>Brand <span class="muted">(optional)</span>
+    <input type="text" name="brand">
+  </label>
+  {% if form.barcode %}
+    <p class="muted">Originally scanned barcode: <strong>{{ form.barcode }}</strong> (not stored unless you copy it into the name).</p>
+  {% endif %}
+
+  <h2>Per 100g</h2>
+  <label>Calories (kcal) — required
+    <input type="number" name="calories_per_100g" step="0.1" min="0" required>
+  </label>
+  <label>Carbs (g) — required
+    <input type="number" name="carbs_per_100g" step="0.1" min="0" required>
+  </label>
+  <label>Fiber (g) <span class="muted">(optional)</span>
+    <input type="number" name="fiber_per_100g" step="0.1" min="0">
+  </label>
+  <label>Protein (g) <span class="muted">(optional)</span>
+    <input type="number" name="protein_per_100g" step="0.1" min="0">
+  </label>
+  <label>Fat (g) <span class="muted">(optional)</span>
+    <input type="number" name="fat_per_100g" step="0.1" min="0">
+  </label>
+  <label>Sugar (g) <span class="muted">(optional)</span>
+    <input type="number" name="sugar_per_100g" step="0.1" min="0">
+  </label>
+  <label>Sodium (g) <span class="muted">(optional)</span>
+    <input type="number" name="sodium_per_100g" step="0.001" min="0">
+  </label>
+
+  <h2>Default serving <span class="muted">(optional)</span></h2>
+  <label>Grams per serving
+    <input type="number" name="default_serving_g" step="0.1" min="0">
+  </label>
+  <label>Label (e.g., "1 cup")
+    <input type="text" name="default_serving_label">
+  </label>
+
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <button type="submit">Save food</button>
+</form>
+{% endblock %}

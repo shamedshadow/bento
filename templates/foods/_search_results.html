@@ -1,0 +1,20 @@
+{% if q %}
+  {% if results %}
+    <ul class="user-list" style="margin-top:0.75rem;">
+      {% for f in results %}
+        <li>
+          <a href="/foods/{{ f.id }}">
+            <strong>{{ f.name }}</strong>{% if f.brand %} — <span class="muted">{{ f.brand }}</span>{% endif %}<br>
+            <span class="muted">
+              {% if f.calories_per_100g is not none %}{{ f.calories_per_100g|round(0) }} kcal{% endif %}
+              {% if f.carbs_per_100g is not none %} · {{ f.carbs_per_100g|round(1) }}g carbs{% endif %}
+              · per 100g
+            </span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted" style="margin-top:0.75rem;">No matches in your foods yet.</p>
+  {% endif %}
+{% endif %}

@@ -6,10 +6,12 @@
   <meta name="theme-color" content="#fafaf7">
   <title>{% block title %}Bento{% endblock %}</title>
   <link rel="stylesheet" href="/static/css/bento.css">
+  <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 </head>
 <body>
   <main>
     {% block content %}{% endblock %}
   </main>
+  {% block scripts %}{% endblock %}
 </body>
 </html>
