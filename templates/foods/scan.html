@@ -27,6 +27,22 @@
     status.className = 'error';
   }
 
+  // Pre-flight: camera APIs are only exposed in secure contexts (HTTPS or
+  // localhost). On plain HTTP from another device, give a clear answer
+  // instead of html5-qrcode's generic "Camera streaming not supported".
+  if (!window.isSecureContext || !navigator.mediaDevices) {
+    result.innerHTML = `
+      <div class="card">
+        <h2>Camera blocked: insecure connection</h2>
+        <p>Your browser only allows camera access over HTTPS (or via <code>localhost</code>).
+           This page is being served over plain HTTP, so scanning is disabled.</p>
+        <p class="muted">Fix: serve Bento over HTTPS. For dev, that means a
+           self-signed cert; for the homelab, a reverse proxy with a real cert.</p>
+      </div>`;
+    showError('Camera unavailable over HTTP.');
+    return;
+  }
+
   async function lookupBarcode(code) {
     status.textContent = 'Looking up ' + code + '…';
     status.className = 'muted';
